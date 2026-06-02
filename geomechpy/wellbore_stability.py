@@ -76,3 +76,57 @@ class WellboreStabilityCalculation:
         pw_breakout = max(Pw_z_t_r, Pw_t_z_r, Pw_t_r_z)
 
         return float(pw_breakout)
+
+    @staticmethod
+    def calculate_breakdown_calculation_vertical_well_analytical_array(shmax: list[float], shmin: list[float], pprs: list[float], tstr: list[float]) -> list[float]:
+        """
+        Calculate the breakdown pressure for a vertical well across arrays of inputs.
+
+        Args:
+           shmax (list[float]): Maximum horizontal stress values Unit [psi].
+           shmin (list[float]): Minimum horizontal stress values Unit [psi].
+           pprs (list[float]): Pore pressure values Unit: Pressure Unit [psi]
+           tstr (list[float]): Tensile rock strength values Unit [psi]
+
+        Returns:
+           pw_breakdown (list[float]): Breakdown pressure values. Unit: psi
+        """
+        return [
+            WellboreStabilityCalculation.calculate_breakdown_calculation_vertical_well_analytical(
+                shmax=sx,
+                shmin=sn,
+                pprs=pp,
+                tstr=ts,
+            )
+            for sx, sn, pp, ts in zip(shmax, shmin, pprs, tstr, strict=True)
+        ]
+
+    @staticmethod
+    def calculate_breakout_calculation_vertical_well_mohr_coulomb_analytical_array(shmax: list[float], shmin: list[float], pprs: list[float], overburden_stress: list[float], ucs: list[float], fang: list[float], pr_sta: list[float]) -> list[float]:
+        """
+        Calculate the breakout pressure for a vertical well across arrays of inputs using the Mohr-Coulomb failure criterion.
+
+        Args:
+           shmax (list[float]): Maximum horizontal stress values Unit [psi].
+           shmin (list[float]): Minimum horizontal stress values Unit [psi].
+           pprs (list[float]): Pore pressure values Unit: Pressure Unit [psi]
+           overburden_stress (list[float]): Overburden stress values Unit: Pressure Unit [psi]
+           ucs (list[float]): Unconfined compressive strength values Unit: [psi]
+           fang (list[float]): Internal friction angle values Unit: [dega]
+           pr_sta (list[float]): Static Poisson's ratio values Unit: [unitless]
+
+        Returns:
+           pw_breakout (list[float]): Breakout pressure values. Unit: psi
+        """
+        return [
+            WellboreStabilityCalculation.calculate_breakout_calculation_vertical_well_mohr_coulomb_analytical(
+                shmax=sx,
+                shmin=sn,
+                pprs=pp,
+                overburden_stress=ovb,
+                ucs=uc,
+                fang=fa,
+                pr_sta=pr,
+            )
+            for sx, sn, pp, ovb, uc, fa, pr in zip(shmax, shmin, pprs, overburden_stress, ucs, fang, pr_sta, strict=True)
+        ]

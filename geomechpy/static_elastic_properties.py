@@ -104,20 +104,20 @@ class StaticElasticPropertiesConverter:
         return yme_sta_morales
 
     @staticmethod
-    def convert_dyn2sta_yme_custom_power_law(measurement: float, multiplier: float, exponent: float) -> float:
+    def convert_dyn2sta_yme_custom_power_law(yme_dyn: float, multiplier: float, exponent: float) -> float:
         """Convert dynamic to static Young's modulus using a custom power law.
 
         Equation type: Power law (y = a*x**b)
         Applicable for: Generic.
 
         Args:
-           measurement (float): Dynamic Young's modulus magnitude. Unit: Mpsi
+           yme_dyn (float): Dynamic Young's modulus magnitude. Unit: Mpsi
            multiplier (float): Custom multiplier - from core data regression or alternative power law correlation Unit: unitless
            exponent (float): Custom exponent - from core data regression or alternative power law correlation  Unit: unitless
 
         Returns:
            yme_sta_morales: Static Young's modulus magnitude. Unit: Mpsi"""
-        yme_sta_power_law = multiplier * measurement**exponent
+        yme_sta_power_law = multiplier * yme_dyn**exponent
 
         return float(yme_sta_power_law)
 
@@ -175,3 +175,120 @@ class StaticElasticPropertiesConverter:
         biot_constant = constant
 
         return biot_constant
+
+    @staticmethod
+    def dyn2sta_yme_bradord_array(yme_dyn: list[float]) -> list[float]:
+        """Convert an array of dynamic Young's modulus values to static using Bradford correlation.
+
+        Args:
+           yme_dyn (list[float]): Dynamic Young's modulus values. Unit: Mpsi
+
+        Returns:
+           list[float]: Static Young's modulus values (Bradford). Unit: Mpsi"""
+        return [
+            StaticElasticPropertiesConverter.dyn2sta_yme_bradord(yme_dyn=value)
+            for value in yme_dyn
+        ]
+
+    @staticmethod
+    def dyn2sta_yme_najib_array(yme_dyn: list[float]) -> list[float]:
+        """Convert an array of dynamic Young's modulus values to static using Najib correlation.
+
+        Args:
+           yme_dyn (list[float]): Dynamic Young's modulus values. Unit: Mpsi
+
+        Returns:
+           list[float]: Static Young's modulus values (Najib). Unit: Mpsi"""
+        return [
+            StaticElasticPropertiesConverter.dyn2sta_yme_najib(yme_dyn=value)
+            for value in yme_dyn
+        ]
+
+    @staticmethod
+    def dyn2sta_yme_fuller_array(yme_dyn: list[float]) -> list[float]:
+        """Convert an array of dynamic Young's modulus values to static using Fuller correlation.
+
+        Args:
+           yme_dyn (list[float]): Dynamic Young's modulus values. Unit: GPa
+
+        Returns:
+           list[float]: Static Young's modulus values (Fuller). Unit: GPa"""
+        return [
+            StaticElasticPropertiesConverter.dyn2sta_yme_fuller(yme_dyn=value)
+            for value in yme_dyn
+        ]
+
+    @staticmethod
+    def dyn2sta_yme_morales_array(yme_dyn: list[float], porosity: list[float], exclude_low_por: bool = True) -> list[float]:
+        """Convert arrays of dynamic Young's modulus and porosity to static Young's modulus using Morales correlation.
+
+        Args:
+           yme_dyn (list[float]): Dynamic Young's modulus values. Unit: Mpsi
+           porosity (list[float]): Formation porosity values as fractions. Unit: unitless
+           exclude_low_por (bool): If True, returns -9999 for porosity below 0.10. Defaults to True.
+
+        Returns:
+           list[float]: Static Young's modulus values (Morales). Unit: Mpsi"""
+        return [
+            StaticElasticPropertiesConverter.dyn2sta_yme_morales(
+                yme_dyn=yme_value,
+                porosity=porosity_value,
+                exclude_low_por=exclude_low_por,
+            )
+            for yme_value, porosity_value in zip(yme_dyn, porosity, strict=True)
+        ]
+
+    @staticmethod
+    def convert_dyn2sta_yme_custom_power_law_array(yme_dyn: list[float], multiplier: float, exponent: float) -> list[float]:
+        """Convert an array of dynamic Young's modulus values to static using a custom power law.
+
+        Args:
+           yme_dyn (list[float]): Dynamic Young's modulus values. Unit: Mpsi
+           multiplier (float): Custom multiplier from regression. Unit: unitless
+           exponent (float): Custom exponent from regression. Unit: unitless
+
+        Returns:
+           list[float]: Static Young's modulus values. Unit: Mpsi"""
+        return [
+            StaticElasticPropertiesConverter.convert_dyn2sta_yme_custom_power_law(
+                yme_dyn=value,
+                multiplier=multiplier,
+                exponent=exponent,
+            )
+            for value in yme_dyn
+        ]
+
+    @staticmethod
+    def dyn2sta_yme_custom_linear_law_array(yme_dyn: list[float], slope: float, intercept: float) -> list[float]:
+        """Convert an array of dynamic Young's modulus values to static using a custom linear law.
+
+        Args:
+           yme_dyn (list[float]): Dynamic Young's modulus values. Unit: Mpsi
+           slope (float): Custom slope from regression. Unit: unitless
+           intercept (float): Custom intercept from regression. Unit: unitless
+
+        Returns:
+           list[float]: Static Young's modulus values. Unit: Mpsi"""
+        return [
+            StaticElasticPropertiesConverter.dyn2sta_yme_custom_linear_law(
+                yme_dyn=value,
+                slope=slope,
+                intercept=intercept,
+            )
+            for value in yme_dyn
+        ]
+
+    @staticmethod
+    def dyn2sta_poissons_ratio_array(pr_dyn: list[float], multiplier: float) -> list[float]:
+        """Convert an array of dynamic Poisson's ratio values to static using a constant multiplier.
+
+        Args:
+           pr_dyn (list[float]): Dynamic Poisson's ratio values. Unit: unitless
+           multiplier (float): Constant multiplier. Unit: unitless
+
+        Returns:
+           list[float]: Static Poisson's ratio values. Unit: unitless"""
+        return [
+            StaticElasticPropertiesConverter.dyn2sta_poissons_ratio(pr_dyn=value, multiplier=multiplier)
+            for value in pr_dyn
+        ]

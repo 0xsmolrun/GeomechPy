@@ -53,3 +53,47 @@ class PorePressureCalculation:
             pore_pressure = air_pressure + water_pressure + formation_pore_pressure_gradient * (tvd - water_depth - air_gap)
 
         return pore_pressure
+
+    @staticmethod
+    def calculate_pore_pressure_onshore_array(tvd: list[float], formation_pore_pressure_gradient: float = 0.47, air_gap: float = 0.0) -> list[float]:
+        """Calculates pore pressure for an array of tvd values in onshore setting.
+
+        Args:
+            tvd (list[float]): True Vertical Depth values. Unit: Depth Unit [ft]
+            formation_pore_pressure_gradient (float): Pore pressure depth gradient. Unit: Depth Gradient Unit [psi/ft]. Defaults to 0.47
+            air_gap (float): Distance from Drill Floor to Ground Level. Usually reported as Kelly bushing (KB) or Elevation Ground Level. Unit: Depth Unit [ft]. Defaults to 0.0
+
+        Returns:
+            pore_pressure (list[float]): Pore pressure values for onshore setting. Unit: Pressure Unit [psi]"""
+        return [
+            PorePressureCalculation.calculate_pore_pressure_onshore(
+                tvd=value,
+                formation_pore_pressure_gradient=formation_pore_pressure_gradient,
+                air_gap=air_gap,
+            )
+            for value in tvd
+        ]
+
+    @staticmethod
+    def calculate_pore_pressure_offshore_array(tvd: list[float], formation_pore_pressure_gradient: float = 0.47, air_gap: float = 0.0, water_depth: float = 0.0, sea_water_pressure_gradient: float = 0.47) -> list[float]:
+        """Calculates pore pressure for an array of tvd values in offshore setting.
+
+        Args:
+            tvd (list[float]): True Vertical Depth values. Unit: Depth Unit [ft]
+            formation_pore_pressure_gradient (float): Pore pressure depth gradient. Unit: Depth Gradient Unit [psi/ft]. Defaults to 0.47
+            air_gap (float): Distance from Drill Floor to mean sea level. Usually reported as Kelly bushing (KB). Unit: Depth Unit [ft]. Defaults to 0.0 ft
+            water_depth (float): Water Depth measured from the mean sea level to sea bottom at well location. Unit: Depth Unit [ft]. Defaults to 0.0 ft
+            sea_water_pressure_gradient (float): Water gradient of the sea water. Unit: Depth Gradient Unit [psi/ft]. Defaults to 0.47 psi/ft
+
+        Returns:
+            pore_pressure (list[float]): Pore pressure values for offshore setting. Unit: Pressure Unit [psi]"""
+        return [
+            PorePressureCalculation.calculate_pore_pressure_offshore(
+                tvd=value,
+                formation_pore_pressure_gradient=formation_pore_pressure_gradient,
+                air_gap=air_gap,
+                water_depth=water_depth,
+                sea_water_pressure_gradient=sea_water_pressure_gradient,
+            )
+            for value in tvd
+        ]

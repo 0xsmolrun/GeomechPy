@@ -348,3 +348,260 @@ class ElasticPropertiesConverter:
         p_wave_modulus = density * (304800 / p_wave_slowness) ** 2
 
         return ElasticPropertiesConverter.convert_from_shear_and_p_wave(shear_modulus, p_wave_modulus)
+
+    @staticmethod
+    def convert_from_bulk_and_youngs_array(bulk_modulus: list[float], youngs_modulus: list[float]) -> list[ElasticProperties]:
+        """Convert arrays of Bulk and Young's moduli to ElasticProperties entries.
+
+        Args:
+            bulk_modulus (list[float]): Bulk modulus values. Unit: Pressure Unit
+            youngs_modulus (list[float]): Young's modulus values. Unit: Pressure Unit
+
+        Returns:
+            list[ElasticProperties]: Computed elastic properties for each input pair."""
+        return [
+            ElasticPropertiesConverter.convert_from_bulk_and_youngs(bm, ym)
+            for bm, ym in zip(bulk_modulus, youngs_modulus, strict=True)
+        ]
+
+    @staticmethod
+    def convert_from_bulk_and_lame_array(bulk_modulus: list[float], lame_parameter: list[float]) -> list[ElasticProperties]:
+        """Convert arrays of Bulk modulus and Lame parameter to ElasticProperties entries.
+
+        Args:
+            bulk_modulus (list[float]): Bulk modulus values. Unit: Pressure Unit
+            lame_parameter (list[float]): Lame parameter values. Unit: Pressure Unit
+
+        Returns:
+            list[ElasticProperties]: Computed elastic properties for each input pair."""
+        return [
+            ElasticPropertiesConverter.convert_from_bulk_and_lame(bm, lp)
+            for bm, lp in zip(bulk_modulus, lame_parameter, strict=True)
+        ]
+
+    @staticmethod
+    def convert_from_bulk_and_shear_array(bulk_modulus: list[float], shear_modulus: list[float]) -> list[ElasticProperties]:
+        """Convert arrays of Bulk and Shear moduli to ElasticProperties entries.
+
+        Args:
+            bulk_modulus (list[float]): Bulk modulus values. Unit: Pressure Unit
+            shear_modulus (list[float]): Shear modulus values. Unit: Pressure Unit
+
+        Returns:
+            list[ElasticProperties]: Computed elastic properties for each input pair."""
+        return [
+            ElasticPropertiesConverter.convert_from_bulk_and_shear(bm, sm)
+            for bm, sm in zip(bulk_modulus, shear_modulus, strict=True)
+        ]
+
+    @staticmethod
+    def convert_from_bulk_and_poissons_array(bulk_modulus: list[float], poissons_ratio: list[float]) -> list[ElasticProperties]:
+        """Convert arrays of Bulk modulus and Poisson's ratio to ElasticProperties entries.
+
+        Args:
+            bulk_modulus (list[float]): Bulk modulus values. Unit: Pressure Unit
+            poissons_ratio (list[float]): Poisson's ratio values. Unit: unitless
+
+        Returns:
+            list[ElasticProperties]: Computed elastic properties for each input pair."""
+        return [
+            ElasticPropertiesConverter.convert_from_bulk_and_poissons(bm, pr)
+            for bm, pr in zip(bulk_modulus, poissons_ratio, strict=True)
+        ]
+
+    @staticmethod
+    def convert_from_bulk_and_p_wave_array(bulk_modulus: list[float], p_wave_modulus: list[float]) -> list[ElasticProperties]:
+        """Convert arrays of Bulk and P-wave moduli to ElasticProperties entries.
+
+        Args:
+            bulk_modulus (list[float]): Bulk modulus values. Unit: Pressure Unit
+            p_wave_modulus (list[float]): P-wave modulus values. Unit: Pressure Unit
+
+        Returns:
+            list[ElasticProperties]: Computed elastic properties for each input pair."""
+        return [
+            ElasticPropertiesConverter.convert_from_bulk_and_p_wave(bm, pw)
+            for bm, pw in zip(bulk_modulus, p_wave_modulus, strict=True)
+        ]
+
+    @staticmethod
+    def convert_from_youngs_and_lame_array(youngs_modulus: list[float], lame_parameter: list[float]) -> list[ElasticProperties]:
+        """Convert arrays of Young's modulus and Lame parameter to ElasticProperties entries.
+
+        Args:
+            youngs_modulus (list[float]): Young's modulus values. Unit: Pressure Unit
+            lame_parameter (list[float]): Lame parameter values. Unit: Pressure Unit
+
+        Returns:
+            list[ElasticProperties]: Computed elastic properties for each input pair."""
+        return [
+            ElasticPropertiesConverter.convert_from_youngs_and_lame(ym, lp)
+            for ym, lp in zip(youngs_modulus, lame_parameter, strict=True)
+        ]
+
+    @staticmethod
+    def convert_from_youngs_and_shear_array(youngs_modulus: list[float], shear_modulus: list[float]) -> list[ElasticProperties]:
+        """Convert arrays of Young's and Shear moduli to ElasticProperties entries.
+
+        Args:
+            youngs_modulus (list[float]): Young's modulus values. Unit: Pressure Unit
+            shear_modulus (list[float]): Shear modulus values. Unit: Pressure Unit
+
+        Returns:
+            list[ElasticProperties]: Computed elastic properties for each input pair."""
+        return [
+            ElasticPropertiesConverter.convert_from_youngs_and_shear(ym, sm)
+            for ym, sm in zip(youngs_modulus, shear_modulus, strict=True)
+        ]
+
+    @staticmethod
+    def convert_from_youngs_and_poissons_array(youngs_modulus: list[float], poissons_ratio: list[float]) -> list[ElasticProperties]:
+        """Convert arrays of Young's modulus and Poisson's ratio to ElasticProperties entries.
+
+        Args:
+            youngs_modulus (list[float]): Young's modulus values. Unit: Pressure Unit
+            poissons_ratio (list[float]): Poisson's ratio values. Unit: unitless
+
+        Returns:
+            list[ElasticProperties]: Computed elastic properties for each input pair."""
+        return [
+            ElasticPropertiesConverter.convert_from_youngs_and_poissons(ym, pr)
+            for ym, pr in zip(youngs_modulus, poissons_ratio, strict=True)
+        ]
+
+    @staticmethod
+    def convert_from_youngs_and_p_wave_array(youngs_modulus: list[float], p_wave_modulus: list[float]) -> list[ElasticProperties]:
+        """Convert arrays of Young's modulus and P-wave modulus to ElasticProperties entries.
+
+        Args:
+            youngs_modulus (list[float]): Young's modulus values. Unit: Pressure Unit
+            p_wave_modulus (list[float]): P-wave modulus values. Unit: Pressure Unit
+
+        Returns:
+            list[ElasticProperties]: Computed elastic properties for each input pair."""
+        return [
+            ElasticPropertiesConverter.convert_from_youngs_and_p_wave(ym, pw)
+            for ym, pw in zip(youngs_modulus, p_wave_modulus, strict=True)
+        ]
+
+    @staticmethod
+    def convert_from_lame_and_shear_array(lame_parameter: list[float], shear_modulus: list[float]) -> list[ElasticProperties]:
+        """Convert arrays of Lame parameter and Shear modulus to ElasticProperties entries.
+
+        Args:
+            lame_parameter (list[float]): Lame parameter values. Unit: Pressure Unit
+            shear_modulus (list[float]): Shear modulus values. Unit: Pressure Unit
+
+        Returns:
+            list[ElasticProperties]: Computed elastic properties for each input pair."""
+        return [
+            ElasticPropertiesConverter.convert_from_lame_and_shear(lp, sm)
+            for lp, sm in zip(lame_parameter, shear_modulus, strict=True)
+        ]
+
+    @staticmethod
+    def convert_from_lame_and_poissons_array(lame_parameter: list[float], poissons_ratio: list[float]) -> list[ElasticProperties]:
+        """Convert arrays of Lame parameter and Poisson's ratio to ElasticProperties entries.
+
+        Args:
+            lame_parameter (list[float]): Lame parameter values. Unit: Pressure Unit
+            poissons_ratio (list[float]): Poisson's ratio values. Unit: unitless
+
+        Returns:
+            list[ElasticProperties]: Computed elastic properties for each input pair."""
+        return [
+            ElasticPropertiesConverter.convert_from_lame_and_poissons(lp, pr)
+            for lp, pr in zip(lame_parameter, poissons_ratio, strict=True)
+        ]
+
+    @staticmethod
+    def convert_from_lame_and_p_wave_array(lame_parameter: list[float], p_wave_modulus: list[float]) -> list[ElasticProperties]:
+        """Convert arrays of Lame parameter and P-wave modulus to ElasticProperties entries.
+
+        Args:
+            lame_parameter (list[float]): Lame parameter values. Unit: Pressure Unit
+            p_wave_modulus (list[float]): P-wave modulus values. Unit: Pressure Unit
+
+        Returns:
+            list[ElasticProperties]: Computed elastic properties for each input pair."""
+        return [
+            ElasticPropertiesConverter.convert_from_lame_and_p_wave(lp, pw)
+            for lp, pw in zip(lame_parameter, p_wave_modulus, strict=True)
+        ]
+
+    @staticmethod
+    def convert_from_shear_and_poissons_array(shear_modulus: list[float], poissons_ratio: list[float]) -> list[ElasticProperties]:
+        """Convert arrays of Shear modulus and Poisson's ratio to ElasticProperties entries.
+
+        Args:
+            shear_modulus (list[float]): Shear modulus values. Unit: Pressure Unit
+            poissons_ratio (list[float]): Poisson's ratio values. Unit: unitless
+
+        Returns:
+            list[ElasticProperties]: Computed elastic properties for each input pair."""
+        return [
+            ElasticPropertiesConverter.convert_from_shear_and_poissons(sm, pr)
+            for sm, pr in zip(shear_modulus, poissons_ratio, strict=True)
+        ]
+
+    @staticmethod
+    def convert_from_shear_and_p_wave_array(shear_modulus: list[float], p_wave_modulus: list[float]) -> list[ElasticProperties]:
+        """Convert arrays of Shear modulus and P-wave modulus to ElasticProperties entries.
+
+        Args:
+            shear_modulus (list[float]): Shear modulus values. Unit: Pressure Unit
+            p_wave_modulus (list[float]): P-wave modulus values. Unit: Pressure Unit
+
+        Returns:
+            list[ElasticProperties]: Computed elastic properties for each input pair."""
+        return [
+            ElasticPropertiesConverter.convert_from_shear_and_p_wave(sm, pw)
+            for sm, pw in zip(shear_modulus, p_wave_modulus, strict=True)
+        ]
+
+    @staticmethod
+    def convert_from_poissons_and_p_wave_array(poissons_ratio: list[float], p_wave_modulus: list[float]) -> list[ElasticProperties]:
+        """Convert arrays of Poisson's ratio and P-wave modulus to ElasticProperties entries.
+
+        Args:
+            poissons_ratio (list[float]): Poisson's ratio values. Unit: unitless
+            p_wave_modulus (list[float]): P-wave modulus values. Unit: Pressure Unit
+
+        Returns:
+            list[ElasticProperties]: Computed elastic properties for each input pair."""
+        return [
+            ElasticPropertiesConverter.convert_from_poissons_and_p_wave(pr, pw)
+            for pr, pw in zip(poissons_ratio, p_wave_modulus, strict=True)
+        ]
+
+    @staticmethod
+    def convert_dynamic_elastic_properties_from_velocity_array(p_wave_velocity: list[float], s_wave_velocity: list[float], density: list[float]) -> list[ElasticProperties]:
+        """Convert arrays of P/S wave velocity and bulk density to ElasticProperties entries.
+
+        Args:
+            p_wave_velocity (list[float]): Compressional velocity values. Unit: m/s
+            s_wave_velocity (list[float]): Shear velocity values. Unit: m/s
+            density (list[float]): Bulk density values. Unit: kg/m3
+
+        Returns:
+            list[ElasticProperties]: Computed elastic properties for each input set."""
+        return [
+            ElasticPropertiesConverter.convert_dynamic_elastic_properties_from_velocity(vp, vs, rho)
+            for vp, vs, rho in zip(p_wave_velocity, s_wave_velocity, density, strict=True)
+        ]
+
+    @staticmethod
+    def convert_dynamic_elastic_properties_from_slowness_array(p_wave_slowness: list[float], s_wave_slowness: list[float], density: list[float]) -> list[ElasticProperties]:
+        """Convert arrays of P/S wave slowness and bulk density to ElasticProperties entries.
+
+        Args:
+            p_wave_slowness (list[float]): Compressional slowness values. Unit: us/ft
+            s_wave_slowness (list[float]): Shear slowness values. Unit: us/ft
+            density (list[float]): Bulk density values. Unit: kg/m3
+
+        Returns:
+            list[ElasticProperties]: Computed elastic properties for each input set."""
+        return [
+            ElasticPropertiesConverter.convert_dynamic_elastic_properties_from_slowness(dtp, dts, rho)
+            for dtp, dts, rho in zip(p_wave_slowness, s_wave_slowness, density, strict=True)
+        ]

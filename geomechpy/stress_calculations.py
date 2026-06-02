@@ -112,3 +112,81 @@ class HorizontalStressesCalculation:
             Value needs to be equal or bigger than 1"""
         shmax_shmin_ratio = shmax / shmin
         return shmax_shmin_ratio
+
+    @staticmethod
+    def calculate_poroelastic_horizontal_stresses_array(overburden_stress: list[float], pore_pressure: list[float], poisson_ratio: list[float], youngs_modulus: list[float], biot_coefficient: list[float], EX: float = 0.0001, EY: float = 0.009) -> list[HorizontalStresses]:
+        """Calculates horizontal stresses for arrays of inputs using the Poroelastic horizontal stress equation.
+
+        Args:
+            overburden_stress (list[float]): Overburden stress values. Unit: Pressure Unit [psi].
+            pore_pressure (list[float]): Pore pressure values. Unit: Pressure Unit [psi].
+            poisson_ratio (list[float]): Static Poisson's ratio values. Unit: unitless.
+            youngs_modulus (list[float]): Static Young's modulus values. Unit: [Mpsi].
+            biot_coefficient (float): Biot's coefficient. Defaults to 1.0
+            EX (float): Tectonic strain term. Unit: unitless. Defaults to 0.0001.
+            EY (float): Tectonic strain term. Unit: unitless. Defaults to 0.009.
+
+        Returns:
+            list[HorizontalStresses]: HorizontalStresses entries for each set of input values."""
+        return [
+            HorizontalStressesCalculation.calculate_poroelastic_horizontal_stresses(
+                overburden_stress=ovb,
+                pore_pressure=pp,
+                poisson_ratio=pr,
+                youngs_modulus=ym,
+                biot_coefficient=bc,
+                EX=EX,
+                EY=EY,
+            )
+            for ovb, pp, pr, ym, bc in zip(overburden_stress, pore_pressure, poisson_ratio, youngs_modulus, biot_coefficient, strict=True)
+        ]
+
+    @staticmethod
+    def calculate_shmax_multiplier_array(shmin: list[float], shmax_multiplier: float = 1.1) -> list[float]:
+        """Calculates an array of maximum horizontal stress values from minimum horizontal stress using a multiplier.
+
+        Args:
+            shmin (list[float]): Minimum horizontal stress values. Unit: [psi]
+            shmax_multiplier (float): A unitless multiplier representing the stress anisotropy. Defaults to 1.1
+
+        Returns:
+            shmax (list[float]): Maximum horizontal stress values. Unit [psi]."""
+        return [
+            HorizontalStressesCalculation.calculate_shmax_multiplier(shmin=value, shmax_multiplier=shmax_multiplier)
+            for value in shmin
+        ]
+
+    @staticmethod
+    def calculate_stress_regime_q_factor_array(sigv: list[float], shmax: list[float], shmin: list[float]) -> list[float]:
+        """Calculates the stress regime q factor for arrays of principal stress values.
+
+        Args:
+            sigv (list[float]): Vertical stress values. Unit [psi].
+            shmax (list[float]): Maximum horizontal stress values. Unit [psi].
+            shmin (list[float]): Minimum horizontal stress values. Unit [psi].
+
+        Returns:
+            q_factor (list[float]): q factor values for each input depth."""
+        return [
+            HorizontalStressesCalculation.calculate_stress_regime_q_factor(
+                sigv=sv,
+                shmax=sx,
+                shmin=sn,
+            )
+            for sv, sx, sn in zip(sigv, shmax, shmin, strict=True)
+        ]
+
+    @staticmethod
+    def calculate_horizontal_stress_ratio_array(shmax: list[float], shmin: list[float]) -> list[float]:
+        """Calculates the ratio between maximum and minimum horizontal stress magnitudes for arrays of values.
+
+        Args:
+            shmax (list[float]): Maximum horizontal stress values. Unit [psi].
+            shmin (list[float]): Minimum horizontal stress values. Unit [psi].
+
+        Returns:
+            shmax_shmin_ratio (list[float]): Stress ratio values between maximum and minimum horizontal stresses. Unit [unitless]."""
+        return [
+            HorizontalStressesCalculation.calculate_horizontal_stress_ratio(shmax=sx, shmin=sn)
+            for sx, sn in zip(shmax, shmin, strict=True)
+        ]
