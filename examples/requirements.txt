@@ -1,0 +1,5 @@
+# Dependencies for the geomechpy example workflow (examples/).
+# The core geomechpy package itself only needs numpy; matplotlib is used here
+# purely for the example visualisations.
+numpy>=1.24
+matplotlib>=3.7
