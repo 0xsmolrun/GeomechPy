@@ -4,7 +4,12 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class WellboreStabilityCalculation:
-    """Compute the shear failre and tensile failure limits for a vertical well using the Mohr-Coulomb failure criterion using analytical solution
+    """Compute the shear failure and tensile failure limits for a vertical well using the Mohr-Coulomb failure criterion using analytical solution
+
+    All methods are unit-agnostic with respect to pressure: stresses, pore pressure and
+    rock strength may be given in any consistent pressure unit (psi, kPa, MPa, ...) and
+    the resulting limits are returned in that same unit. Use `geomechpy.units.UnitConverter`
+    (e.g. `convert_pressure_to_mud_weight`) to express the results as an equivalent mud weight.
 
     Reference:
     Jaeger, John Conrad, Neville GW Cook, and Robert Zimmerman. Fundamentals of rock mechanics. John Wiley & Sons, 2009.
@@ -19,7 +24,7 @@ class WellboreStabilityCalculation:
 
         Applicable for: Generic.
 
-        Reference: PJaeger, John Conrad, Neville GW Cook, and Robert Zimmerman. Fundamentals of rock mechanics. John Wiley & Sons, 2009, pp. 158-159.
+        Reference: Jaeger, John Conrad, Neville GW Cook, and Robert Zimmerman. Fundamentals of rock mechanics. John Wiley & Sons, 2009, pp. 158-159.
         Hubbert, M. King, and David G. Willis. "Mechanics of hydraulic fracturing." Transactions of the AIME 210.01 (1957): 153-168.
 
         Args:
@@ -48,12 +53,12 @@ class WellboreStabilityCalculation:
 
         Applicable for: Generic.
 
-        Reference: PJaeger, John Conrad, Neville GW Cook, and Robert Zimmerman. Fundamentals of rock mechanics. John Wiley & Sons, 2009, pp. 158-159.
+        Reference: Jaeger, John Conrad, Neville GW Cook, and Robert Zimmerman. Fundamentals of rock mechanics. John Wiley & Sons, 2009, pp. 158-159.
         Al-Ajmi, Adel M., and Robert W. Zimmerman. "Stability analysis of vertical boreholes using the Mogi-Coulomb failure criterion." International journal of rock mechanics and mining sciences 43.8 (2006): 1200-1211.
 
         Args:
            shmin (float): Minimum horizontal stress magnitude Unit [psi].
-           shmax (float): MAximum horizontal stress magnitude Unit [psi].
+           shmax (float): Maximum horizontal stress magnitude Unit [psi].
            pore_pressure (float): value of pressure in pressure unit  Unit: Pressure Unit [psi]
            overburden_stress: value of overburden stress in pressure unit  Unit: Pressure Unit [psi]
            ucs: Unconfined compressive strength (UCS) Unit: [psi]
