@@ -126,7 +126,14 @@ print(f"Safe mud pressure window: {breakout:.0f} - {breakdown:.0f} psi")
 ```python
 from geomechpy import PorePressureCalculation, UnitConverter
 
-# Calculations accept unit arguments directly (here: metric SI units)
+# Pore pressure gradients are usually quoted in psi/ft or ppg — pass either directly
+pore_pressure_psi = PorePressureCalculation.calculate_pore_pressure_onshore(
+    tvd=10000.0,                            # ft
+    formation_pore_pressure_gradient=9.0,   # ppg equivalent mud weight
+    gradient_unit="ppg",
+)
+
+# Or work fully in metric SI units
 pore_pressure_kpa = PorePressureCalculation.calculate_pore_pressure_onshore(
     tvd=3000.0,                              # m
     formation_pore_pressure_gradient=10.5,   # kPa/m

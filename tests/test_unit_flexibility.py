@@ -35,6 +35,34 @@ class TestPorePressureUnits:
 
         assert UnitConverter.convert_pressure(si_result, "kPa", "psi") == pytest.approx(field_result, rel=TOLERANCE)
 
+    def test_gradient_in_ppg(self) -> None:
+        # A 9.0 ppg equivalent mud weight pore pressure gradient, result still in psi
+        gradient_psi_ft = UnitConverter.convert_pressure_gradient(9.0, "ppg", "psi/ft")
+
+        reference = PorePressureCalculation.calculate_pore_pressure_onshore(
+            tvd=10000.0, formation_pore_pressure_gradient=gradient_psi_ft
+        )
+        ppg_result = PorePressureCalculation.calculate_pore_pressure_onshore(
+            tvd=10000.0, formation_pore_pressure_gradient=9.0, gradient_unit="ppg"
+        )
+
+        assert ppg_result == pytest.approx(reference, rel=TOLERANCE)
+
+    def test_gradient_in_ppg_with_metric_depth_and_pressure(self) -> None:
+        # ppg gradient combined with metric depth input and MPa output
+        field_result = PorePressureCalculation.calculate_pore_pressure_onshore(
+            tvd=10000.0, formation_pore_pressure_gradient=9.0, gradient_unit="ppg"
+        )
+        metric_result = PorePressureCalculation.calculate_pore_pressure_onshore(
+            tvd=UnitConverter.convert_depth(10000.0, "ft", "m"),
+            formation_pore_pressure_gradient=9.0,
+            gradient_unit="ppg",
+            depth_unit="m",
+            pressure_unit="MPa",
+        )
+
+        assert UnitConverter.convert_pressure(metric_result, "MPa", "psi") == pytest.approx(field_result, rel=TOLERANCE)
+
     def test_offshore_si_inputs_match_field_inputs(self) -> None:
         field_result = PorePressureCalculation.calculate_pore_pressure_offshore(
             tvd=8000.0, air_gap=80.0, water_depth=1000.0
@@ -58,6 +86,19 @@ class TestOverburdenStressUnits:
         )
 
         assert UnitConverter.convert_pressure(si_result, "MPa", "psi") == pytest.approx(field_result, rel=TOLERANCE)
+
+    def test_lithostatic_gradient_in_sg(self) -> None:
+        # A 2.4 SG bulk density lithostatic gradient
+        gradient_psi_ft = UnitConverter.convert_pressure_gradient(2.4, "SG", "psi/ft")
+
+        reference = OverburdenStressCalculation.calculate_overburden_stress_onshore(
+            tvd=10000.0, lithostatic_gradient=gradient_psi_ft
+        )
+        sg_result = OverburdenStressCalculation.calculate_overburden_stress_onshore(
+            tvd=10000.0, lithostatic_gradient=2.4, gradient_unit="SG"
+        )
+
+        assert sg_result == pytest.approx(reference, rel=TOLERANCE)
 
     def test_gradient_in_bar_per_m(self) -> None:
         field_result = OverburdenStressCalculation.calculate_overburden_stress_onshore(
