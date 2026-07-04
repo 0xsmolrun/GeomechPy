@@ -102,8 +102,9 @@ class TestKirschBoreholeWallStresses:
 
     def test_known_value_sigma_tt_vertical_well_balanced_mud(self) -> None:
         # Vertical borehole, shmax aligned North, balanced mud (mud=pprs), no shear (sxy=sxz=syz=0)
-        # At theta=0 (top of hole): sigma_tt = 3*shmin - shmax = 3*10000 - 12000 = 18000
-        # At theta=90:              sigma_tt = 3*shmax - shmin = 3*12000 - 10000 = 26000
+        # Effective tangential stress (Kirsch, Biot=1):
+        # At theta=0 (SHmax direction): sigma_tt' = 3*shmin - shmax - 2*pp = 30000 - 12000 - 10000 = 8000
+        # At theta=90:                  sigma_tt' = 3*shmax - shmin - 2*pp = 36000 - 10000 - 10000 = 16000
         result = NearWellboreStressesCalculation.calculate_kirsch_borehole_wall_stresses(
             shmin=10000,
             shmax=12000,
@@ -116,12 +117,13 @@ class TestKirschBoreholeWallStresses:
             borehole_deviation=0,
             borehole_azimuth=0,
         )
-        assert result.sigma_tt[0] == pytest.approx(18000, rel=TOLERANCE)
-        assert result.sigma_tt[1] == pytest.approx(26000, rel=TOLERANCE)
+        assert result.sigma_tt[0] == pytest.approx(8000, rel=TOLERANCE)
+        assert result.sigma_tt[1] == pytest.approx(16000, rel=TOLERANCE)
 
     def test_known_value_sigma_zz_vertical_well_balanced_mud(self) -> None:
-        # sigma_zz at theta=0: svert - pr*(2*(shmax-shmin)) = 13000 - 0.25*4000 = 12000
-        # sigma_zz at theta=90: svert + pr*(2*(shmax-shmin)) = 13000 + 0.25*4000 = 14000
+        # Effective axial stress (Biot=1):
+        # sigma_zz' at theta=0: svert - pp - pr*(2*(shmax-shmin)) = 13000 - 5000 - 0.25*4000 = 7000
+        # sigma_zz' at theta=90: svert - pp + pr*(2*(shmax-shmin)) = 13000 - 5000 + 0.25*4000 = 9000
         result = NearWellboreStressesCalculation.calculate_kirsch_borehole_wall_stresses(
             shmin=10000,
             shmax=12000,
@@ -134,8 +136,32 @@ class TestKirschBoreholeWallStresses:
             borehole_deviation=0,
             borehole_azimuth=0,
         )
-        assert result.sigma_zz[0] == pytest.approx(12000, rel=TOLERANCE)
-        assert result.sigma_zz[1] == pytest.approx(14000, rel=TOLERANCE)
+        assert result.sigma_zz[0] == pytest.approx(7000, rel=TOLERANCE)
+        assert result.sigma_zz[1] == pytest.approx(9000, rel=TOLERANCE)
+
+
+class TestKirschConsistencyWithBreakoutFormula:
+    def test_effective_tangential_stress_matches_analytical_breakout_stress(self) -> None:
+        # For a vertical well the effective tangential stress at the azimuth of shmin
+        # (theta measured from the SHmax direction, theta=90) must equal
+        # 3*shmax - shmin - pw - pp, the stress used in the analytical breakout derivation
+        # (e.g. Al-Ajmi & Zimmerman 2006).
+        shmin, shmax, svert = 10000.0, 12000.0, 13000.0
+        pore_pressure, mud_pressure = 5000.0, 6500.0
+        result = NearWellboreStressesCalculation.calculate_kirsch_borehole_wall_stresses(
+            shmin=shmin,
+            shmax=shmax,
+            svert=svert,
+            pore_pressure=pore_pressure,
+            shmax_azimuth=0,
+            mud_pressure=mud_pressure,
+            theta=np.array([90.0]),
+            poisson_ratio_static=0.25,
+            borehole_deviation=0,
+            borehole_azimuth=0,
+        )
+        expected_effective_tangential = 3 * shmax - shmin - mud_pressure - pore_pressure
+        assert result.sigma_tt[0] == pytest.approx(expected_effective_tangential, rel=TOLERANCE)
 
 
 class TestPrincipalStressesAnalytical:

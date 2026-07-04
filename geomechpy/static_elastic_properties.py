@@ -108,10 +108,10 @@ class StaticElasticPropertiesConverter:
         if porosity < 0.15:
             multiplier = 2.562214651764409
             exponent = 0.6612
-        elif porosity < 0.25:
+        elif porosity <= 0.25:
             multiplier = 0.5281242638335621
             exponent = 0.6920
-        elif porosity > 0.25:
+        else:
             multiplier = 0.3467028522374105
             exponent = 0.9404
 

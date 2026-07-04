@@ -52,6 +52,12 @@ class TestMoralesCorrelation:
         expected = 0.3467028522374105 * 5.0**0.9404
         assert result == pytest.approx(expected, rel=TOLERANCE)
 
+    def test_porosity_boundary_at_exactly_25_percent(self) -> None:
+        # porosity == 0.25 previously fell through every branch and crashed
+        result = StaticElasticPropertiesConverter.dyn2sta_yme_morales(yme_dyn=5.0, porosity=0.25)
+        expected = 0.5281242638335621 * 5.0**0.6920
+        assert result == pytest.approx(expected, rel=TOLERANCE)
+
     def test_low_porosity_excluded_by_default(self) -> None:
         result = StaticElasticPropertiesConverter.dyn2sta_yme_morales(yme_dyn=5.0, porosity=0.05)
         assert result == -9999

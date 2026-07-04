@@ -21,7 +21,9 @@ class RockStrengthPropertiesConverter:
         """
         Convert static Young's modulus to UCS using Plumb Generic correlation
 
-        Equation type: Linear law (y = a*x)
+        Equation type: Linear law (y = a*x). Source form: UCS [MPa] = 1.45 * E_sta [GPa],
+        implemented here as UCS [psi] = 1450 * E_sta [Mpsi] (an identical relation, since
+        1 Mpsi = 6.894757 GPa and 1 MPa = 145.0377 psi).
 
         Applicable for: generic.
 
@@ -37,7 +39,7 @@ class RockStrengthPropertiesConverter:
         """
         yme_sta = UnitConverter.convert_pressure(yme_sta, modulus_unit, "Mpsi")
 
-        multiplier = 0.210306770614015
+        multiplier = 1450.0
         ucs_plumb_generic = multiplier * yme_sta
 
         return UnitConverter.convert_pressure(float(ucs_plumb_generic), "psi", pressure_unit)
@@ -45,7 +47,7 @@ class RockStrengthPropertiesConverter:
     @staticmethod
     def convert_ucs_to_tstr(ucs: float, multiplier: float = 0.15) -> float:
         """
-        Convert UCS to tensile strength using a constant multiploer
+        Convert UCS to tensile strength using a constant multiplier
 
         Equation type: Linear law (y = a*x)
 
@@ -56,7 +58,7 @@ class RockStrengthPropertiesConverter:
            ucs (float): Unconfined Compressive Strength Unit: any pressure unit
            multiplier (float): constant multiplier Default set to 0.15.
         Returns:
-           tstr (float): Tensile Stength Unit: same pressure unit as the UCS input
+           tstr (float): Tensile Strength Unit: same pressure unit as the UCS input
         """
 
         tstr = multiplier * ucs
@@ -83,7 +85,7 @@ class RockStrengthPropertiesConverter:
         """
         dtco = UnitConverter.convert_slowness(dtco, slowness_unit, "us/ft")
 
-        fang_lal = (180 / 3.141592) * math.asin((304800 - 1000 * dtco) / (304800 + 1000 * dtco))
+        fang_lal = math.degrees(math.asin((304800 - 1000 * dtco) / (304800 + 1000 * dtco)))
 
         return float(fang_lal)
 

@@ -8,7 +8,7 @@ from geomechpy.toolbox import rotate_nev_to_toh, rotate_stress_to_shmax
 
 @dataclass(frozen=True)
 class BoreholeWallStresses:
-    """Near wellbore stress components on the borehole wall.
+    """Near wellbore effective stress components on the borehole wall (Biot coefficient of 1).
 
     Attributes:
         sigma_rr (npt.NDArray[np.float64]): Radial near wellbore stress component computed at azimuthal positions relative to the borehole axis. Unit: Pressure
@@ -68,6 +68,11 @@ class NearWellboreStressesCalculation:
     ) -> BoreholeWallStresses:
         """Compute the near wellbore stresses on the borehole wall for any borehole orientation using the Kirsch solution.
 
+        Inputs are total in-situ stresses; the returned stress components are effective
+        stresses on the borehole wall (Terzaghi, Biot coefficient of 1): the pore pressure
+        is subtracted from the far-field normal stresses and the radial stress at the wall
+        is the mud pressure minus the pore pressure.
+
         Reference: Fjaer, Erling, et al. Petroleum related rock mechanics. Vol. 53. Elsevier, 2008; Chapter 4 eq. 4.83 - 4.92.
 
         Args:
@@ -88,9 +93,11 @@ class NearWellboreStressesCalculation:
         stress_tensor_nev = rotate_stress_to_shmax(shmin, shmax, svert, shmax_azimuth)
         stress_toh = rotate_nev_to_toh(borehole_deviation, borehole_azimuth, stress_tensor_nev)
 
-        sx0 = stress_toh[0, 0]
-        sy0 = stress_toh[1, 1]
-        sz0 = stress_toh[2, 2]
+        # Effective far-field stresses: subtracting the isotropic pore pressure from the
+        # normal components (rotation leaves an isotropic tensor unchanged)
+        sx0 = stress_toh[0, 0] - pore_pressure
+        sy0 = stress_toh[1, 1] - pore_pressure
+        sz0 = stress_toh[2, 2] - pore_pressure
         sxy0 = stress_toh[1, 0]
         syz0 = stress_toh[2, 1]
         sxz0 = stress_toh[2, 0]
