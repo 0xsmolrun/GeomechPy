@@ -6,6 +6,20 @@ GeomechPy is a Python library for building **1D geomechanics workflows** (Mechan
 
 ## Current Capabilities
 
+### Units (`geomechpy.units`)
+
+| Capability | Class / Function | Notes |
+|---|---|---|
+| Pressure / modulus conversion | `UnitConverter.convert_pressure` | Pa, kPa, MPa, GPa, psi, psia, kpsi, Mpsi, bar, atm |
+| Depth / length conversion | `UnitConverter.convert_depth` | m, km, ft |
+| Density conversion | `UnitConverter.convert_density` | kg/m³, g/cm³, lb/ft³, ppg, SG |
+| Velocity / slowness conversion | `UnitConverter.convert_velocity`, `convert_slowness` | m/s, km/s, ft/s; s/m, µs/m, µs/ft |
+| Pressure gradient conversion | `UnitConverter.convert_pressure_gradient` | Any `<pressure>/<depth>` combination (psi/ft, kPa/m, ...) plus mud weight units (ppg, SG, g/cm³) |
+| Density → hydrostatic gradient | `UnitConverter.convert_density_to_pressure_gradient` | Under standard gravity |
+| Mud weight ↔ downhole pressure | `UnitConverter.convert_mud_weight_to_pressure`, `convert_pressure_to_mud_weight` | Equivalent mud weight at a given TVD |
+
+In addition, calculations are unit-flexible: unit-agnostic methods (elastic moduli conversions, wellbore stability, near-wellbore stresses) accept any consistent pressure unit, while unit-bound methods (pore pressure, overburden, dynamic moduli, strength/static correlations, poroelastic stresses) take optional unit arguments (`pressure_unit`, `depth_unit`, `velocity_unit`, `slowness_unit`, `density_unit`, `modulus_unit`) and convert internally.
+
 ### Elastic Properties (`geomechpy.elastic_properties`)
 
 | Capability | Class / Function | Notes |
@@ -91,6 +105,7 @@ GeomechPy is a Python library for building **1D geomechanics workflows** (Mechan
 - **Immutable result objects** — multi-valued results are returned as frozen dataclasses (`ElasticProperties`, `HorizontalStresses`, `BoreholeWallStresses`, ...).
 - **Literature-backed** — methods cite their sources (Zhang 2019, Jaeger, Cook & Zimmerman 2009, Fjaer et al. 2008, SPE papers) directly in docstrings.
 - **Explicit units** — every docstring states the expected input and output units.
+- **Unit flexibility** — a built-in `UnitConverter` plus optional unit arguments on unit-bound calculations (field or SI units, mud weight units, arbitrary gradient combinations).
 - **Arbitrary borehole orientation** for near-wellbore stress analysis via full stress tensor rotation.
 - **Lightweight** — only depends on NumPy (used by the near-wellbore module); everything else is standard library.
 
@@ -98,6 +113,7 @@ GeomechPy is a Python library for building **1D geomechanics workflows** (Mechan
 
 ## Supported Calculations (Summary)
 
+- **Unit conversions**: pressure/modulus, depth, density, velocity, slowness, pressure gradient (including ppg/SG mud weight units), and mud weight ↔ downhole pressure.
 - **Elastic moduli conversions**: 15 pairwise conversions between K, E, λ, G, ν and M.
 - **Dynamic moduli from logs**: sonic velocity or slowness plus bulk density to dynamic K, E, λ, G, ν, M and Vp/Vs.
 - **Dynamic → static calibration**: 4 published Young's modulus correlations plus custom power/linear laws.
@@ -123,7 +139,6 @@ Being a young library (v0.0.1), several standard geomechanics workflows are not 
 - **Additional failure criteria** — Mogi-Coulomb, Drucker-Prager, modified Lade.
 - **More rock strength correlations** — sonic- and porosity-based UCS correlations (McNally, Chang et al. compilation).
 - **Thermal and poroelastic time-dependent wellbore effects.**
-- **Unit-system helpers** — conversions are currently the caller's responsibility (psi/ft conventions are assumed in stress/pressure modules).
 - **pandas integration** — helpers to run workflows directly on depth-indexed DataFrames.
 - **Anisotropic rock physics** (TI media, Thomsen parameters).
 

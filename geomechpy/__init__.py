@@ -14,6 +14,7 @@ from geomechpy.pore_pressure import PorePressureCalculation
 from geomechpy.rock_strength import RockStrengthPropertiesConverter
 from geomechpy.static_elastic_properties import StaticElasticPropertiesConverter
 from geomechpy.stress_calculations import HorizontalStresses, HorizontalStressesCalculation
+from geomechpy.units import UnitConverter
 from geomechpy.wellbore_stability import WellboreStabilityCalculation
 
 __version__ = "0.0.1"
@@ -32,5 +33,6 @@ __all__ = [
     "PrincipalStresses",
     "RockStrengthPropertiesConverter",
     "StaticElasticPropertiesConverter",
+    "UnitConverter",
     "WellboreStabilityCalculation",
 ]

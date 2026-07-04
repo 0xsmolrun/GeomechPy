@@ -45,6 +45,10 @@ class PrincipalStresses:
 class NearWellboreStressesCalculation:
     """Computation of the near wellbore stresses on the borehole wall for any borehole orientation.
 
+    All methods are unit-agnostic with respect to pressure: stresses and pressures may be
+    given in any consistent pressure unit (psi, kPa, MPa, ...) and the resulting stress
+    components are returned in that same unit. Angles are always in degrees.
+
     Reference:
         Fjaer, Erling, et al. Petroleum related rock mechanics. Vol. 53. Elsevier, 2008; Chapter 4 eq. 4.83 - 4.92.
         Jaeger, John Conrad, Neville GW Cook, and Robert Zimmerman. Fundamentals of rock mechanics. John Wiley & Sons, 2009; Chapter 2.3, eq. 2.31 - 2.33."""

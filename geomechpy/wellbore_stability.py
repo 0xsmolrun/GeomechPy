@@ -6,6 +6,11 @@ from dataclasses import dataclass
 class WellboreStabilityCalculation:
     """Compute the shear failre and tensile failure limits for a vertical well using the Mohr-Coulomb failure criterion using analytical solution
 
+    All methods are unit-agnostic with respect to pressure: stresses, pore pressure and
+    rock strength may be given in any consistent pressure unit (psi, kPa, MPa, ...) and
+    the resulting limits are returned in that same unit. Use `geomechpy.units.UnitConverter`
+    (e.g. `convert_pressure_to_mud_weight`) to express the results as an equivalent mud weight.
+
     Reference:
     Jaeger, John Conrad, Neville GW Cook, and Robert Zimmerman. Fundamentals of rock mechanics. John Wiley & Sons, 2009.
     Al-Ajmi, Adel M., and Robert W. Zimmerman. "Stability analysis of vertical boreholes using the Mogi–Coulomb failure criterion." International journal of rock mechanics and mining sciences 43.8 (2006): 1200-1211.

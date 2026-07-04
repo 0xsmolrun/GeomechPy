@@ -11,6 +11,7 @@ Every calculation is available in a single-value form and an `_array` form for d
 
 ## Features
 
+- **Unit flexibility** — a built-in `UnitConverter` (psi/kPa/MPa/bar, ft/m, ppg/SG mud weights, µs/ft slowness, ...) and optional unit arguments on the calculations themselves.
 - **Elastic properties** — convert any pair of elastic moduli (K, E, λ, G, ν, M) into the full set.
 - **Dynamic elastic properties** — compute dynamic moduli from sonic velocities (Vp/Vs) or slownesses (DTCO/DTSH) plus bulk density.
 - **Dynamic-to-static conversion** — published correlations (Bradford, Najibi, Fuller, Morales) and custom power/linear laws.
@@ -119,6 +120,29 @@ breakdown = WellboreStabilityCalculation.calculate_breakdown_calculation_vertica
 )
 print(f"Safe mud pressure window: {breakout:.0f} - {breakdown:.0f} psi")
 ```
+
+### 4. Working in your preferred units
+
+```python
+from geomechpy import PorePressureCalculation, UnitConverter
+
+# Calculations accept unit arguments directly (here: metric SI units)
+pore_pressure_kpa = PorePressureCalculation.calculate_pore_pressure_onshore(
+    tvd=3000.0,                              # m
+    formation_pore_pressure_gradient=10.5,   # kPa/m
+    depth_unit="m",
+    pressure_unit="kPa",
+)
+
+# Or convert quantities explicitly with the UnitConverter
+pressure_psi = UnitConverter.convert_pressure(pore_pressure_kpa, "kPa", "psi")
+emw_ppg = UnitConverter.convert_pressure_to_mud_weight(
+    pore_pressure_kpa, tvd=3000.0, pressure_unit="kPa", depth_unit="m", mud_weight_unit="ppg"
+)
+gradient = UnitConverter.convert_pressure_gradient(0.47, "psi/ft", "kPa/m")
+```
+
+Unit-agnostic calculations (elastic moduli conversions, wellbore stability, near-wellbore stresses) work with any consistent pressure unit and return results in that same unit.
 
 ## Documentation
 

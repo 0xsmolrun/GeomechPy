@@ -1,6 +1,8 @@
 import math
 from dataclasses import dataclass
 
+from geomechpy.units import UnitConverter
+
 
 @dataclass(frozen=True)
 class ElasticProperties:
@@ -24,6 +26,10 @@ class ElasticProperties:
 
 class ElasticPropertiesConverter:
     """Convert any pair of two elastic properties into all other types of elastic property notations.
+
+    The pairwise `convert_from_*` methods are unit-agnostic: any consistent pressure unit
+    (GPa, psi, Mpsi, ...) may be used and results are returned in that same unit. The
+    velocity/slowness-based methods accept explicit unit arguments.
 
     Reference:
         https://en.wikipedia.org/wiki/Elastic_modulus"""
@@ -318,36 +324,61 @@ class ElasticPropertiesConverter:
         return ElasticProperties(bulk_modulus, youngs_modulus, lame_parameter, shear_modulus, poissons_ratio, p_wave_modulus)
 
     @staticmethod
-    def convert_dynamic_elastic_properties_from_velocity(p_wave_velocity: float, s_wave_velocity: float, density: float) -> ElasticProperties:
+    def convert_dynamic_elastic_properties_from_velocity(p_wave_velocity: float, s_wave_velocity: float, density: float, velocity_unit: str = "m/s", density_unit: str = "kg/m3", modulus_unit: str = "Pa") -> ElasticProperties:
         """Convert P and S Wave Velocity and Bulk Density to all elastic property types.
 
         Args:
-            p_wave_velocity (float): Compressional Velocity Unit: Velocity Unit m/s
-            s_wave_velocity (float): Shear Velocity Unit: Velocity Unit m/s
-            density (float): Bulk Density Unit: Density unit kg/m3
+            p_wave_velocity (float): Compressional Velocity Unit: [velocity_unit]
+            s_wave_velocity (float): Shear Velocity Unit: [velocity_unit]
+            density (float): Bulk Density Unit: [density_unit]
+            velocity_unit (str): Unit of the velocity inputs (e.g. "m/s", "ft/s"). Defaults to "m/s"
+            density_unit (str): Unit of the density input (e.g. "kg/m3", "g/cm3"). Defaults to "kg/m3"
+            modulus_unit (str): Unit of the elastic moduli output (e.g. "Pa", "GPa", "Mpsi"). Defaults to "Pa"
 
         Returns:
-            ElasticProperties: Dataclass containing computed elastic properties. See `ElasticProperties` for details. Unit: Pascal [Pa]"""
+            ElasticProperties: Dataclass containing computed elastic properties. See `ElasticProperties` for details. Unit: [modulus_unit]"""
+        p_wave_velocity = UnitConverter.convert_velocity(p_wave_velocity, velocity_unit, "m/s")
+        s_wave_velocity = UnitConverter.convert_velocity(s_wave_velocity, velocity_unit, "m/s")
+        density = UnitConverter.convert_density(density, density_unit, "kg/m3")
+
         shear_modulus = density * s_wave_velocity**2
         p_wave_modulus = density * p_wave_velocity**2
 
-        return ElasticPropertiesConverter.convert_from_shear_and_p_wave(shear_modulus, p_wave_modulus)
+        elastic_properties = ElasticPropertiesConverter.convert_from_shear_and_p_wave(shear_modulus, p_wave_modulus)
+
+        return ElasticProperties(
+            bulk_modulus=UnitConverter.convert_pressure(elastic_properties.bulk_modulus, "Pa", modulus_unit),
+            youngs_modulus=UnitConverter.convert_pressure(elastic_properties.youngs_modulus, "Pa", modulus_unit),
+            lame_parameter=UnitConverter.convert_pressure(elastic_properties.lame_parameter, "Pa", modulus_unit),
+            shear_modulus=UnitConverter.convert_pressure(elastic_properties.shear_modulus, "Pa", modulus_unit),
+            poissons_ratio=elastic_properties.poissons_ratio,
+            p_wave_modulus=UnitConverter.convert_pressure(elastic_properties.p_wave_modulus, "Pa", modulus_unit),
+        )
 
     @staticmethod
-    def convert_dynamic_elastic_properties_from_slowness(p_wave_slowness: float, s_wave_slowness: float, density: float) -> ElasticProperties:
+    def convert_dynamic_elastic_properties_from_slowness(p_wave_slowness: float, s_wave_slowness: float, density: float, slowness_unit: str = "us/ft", density_unit: str = "kg/m3", modulus_unit: str = "Pa") -> ElasticProperties:
         """Convert P and S Wave Slowness and Bulk Density to all elastic property types.
 
         Args:
-            p_wave_slowness (float): Compressional Slowness Unit: us/ft
-            s_wave_slowness (float): Shear Slowness Unit: us/ft
-            density (float): Bulk Density Unit: kg/m3
+            p_wave_slowness (float): Compressional Slowness Unit: [slowness_unit]
+            s_wave_slowness (float): Shear Slowness Unit: [slowness_unit]
+            density (float): Bulk Density Unit: [density_unit]
+            slowness_unit (str): Unit of the slowness inputs (e.g. "us/ft", "us/m"). Defaults to "us/ft"
+            density_unit (str): Unit of the density input (e.g. "kg/m3", "g/cm3"). Defaults to "kg/m3"
+            modulus_unit (str): Unit of the elastic moduli output (e.g. "Pa", "GPa", "Mpsi"). Defaults to "Pa"
 
         Returns:
-            ElasticProperties: Dataclass containing computed elastic properties. See `ElasticProperties` for details. Unit: Pascal [Pa]"""
-        shear_modulus = density * (304800 / s_wave_slowness) ** 2
-        p_wave_modulus = density * (304800 / p_wave_slowness) ** 2
+            ElasticProperties: Dataclass containing computed elastic properties. See `ElasticProperties` for details. Unit: [modulus_unit]"""
+        p_wave_slowness = UnitConverter.convert_slowness(p_wave_slowness, slowness_unit, "us/ft")
+        s_wave_slowness = UnitConverter.convert_slowness(s_wave_slowness, slowness_unit, "us/ft")
 
-        return ElasticPropertiesConverter.convert_from_shear_and_p_wave(shear_modulus, p_wave_modulus)
+        return ElasticPropertiesConverter.convert_dynamic_elastic_properties_from_velocity(
+            p_wave_velocity=304800 / p_wave_slowness,
+            s_wave_velocity=304800 / s_wave_slowness,
+            density=density,
+            density_unit=density_unit,
+            modulus_unit=modulus_unit,
+        )
 
     @staticmethod
     def convert_from_bulk_and_youngs_array(bulk_modulus: list[float], youngs_modulus: list[float]) -> list[ElasticProperties]:
@@ -575,33 +606,39 @@ class ElasticPropertiesConverter:
         ]
 
     @staticmethod
-    def convert_dynamic_elastic_properties_from_velocity_array(p_wave_velocity: list[float], s_wave_velocity: list[float], density: list[float]) -> list[ElasticProperties]:
+    def convert_dynamic_elastic_properties_from_velocity_array(p_wave_velocity: list[float], s_wave_velocity: list[float], density: list[float], velocity_unit: str = "m/s", density_unit: str = "kg/m3", modulus_unit: str = "Pa") -> list[ElasticProperties]:
         """Convert arrays of P/S wave velocity and bulk density to ElasticProperties entries.
 
         Args:
-            p_wave_velocity (list[float]): Compressional velocity values. Unit: m/s
-            s_wave_velocity (list[float]): Shear velocity values. Unit: m/s
-            density (list[float]): Bulk density values. Unit: kg/m3
+            p_wave_velocity (list[float]): Compressional velocity values. Unit: [velocity_unit]
+            s_wave_velocity (list[float]): Shear velocity values. Unit: [velocity_unit]
+            density (list[float]): Bulk density values. Unit: [density_unit]
+            velocity_unit (str): Unit of the velocity inputs. Defaults to "m/s"
+            density_unit (str): Unit of the density inputs. Defaults to "kg/m3"
+            modulus_unit (str): Unit of the elastic moduli outputs. Defaults to "Pa"
 
         Returns:
             list[ElasticProperties]: Computed elastic properties for each input set."""
         return [
-            ElasticPropertiesConverter.convert_dynamic_elastic_properties_from_velocity(vp, vs, rho)
+            ElasticPropertiesConverter.convert_dynamic_elastic_properties_from_velocity(vp, vs, rho, velocity_unit=velocity_unit, density_unit=density_unit, modulus_unit=modulus_unit)
             for vp, vs, rho in zip(p_wave_velocity, s_wave_velocity, density, strict=True)
         ]
 
     @staticmethod
-    def convert_dynamic_elastic_properties_from_slowness_array(p_wave_slowness: list[float], s_wave_slowness: list[float], density: list[float]) -> list[ElasticProperties]:
+    def convert_dynamic_elastic_properties_from_slowness_array(p_wave_slowness: list[float], s_wave_slowness: list[float], density: list[float], slowness_unit: str = "us/ft", density_unit: str = "kg/m3", modulus_unit: str = "Pa") -> list[ElasticProperties]:
         """Convert arrays of P/S wave slowness and bulk density to ElasticProperties entries.
 
         Args:
-            p_wave_slowness (list[float]): Compressional slowness values. Unit: us/ft
-            s_wave_slowness (list[float]): Shear slowness values. Unit: us/ft
-            density (list[float]): Bulk density values. Unit: kg/m3
+            p_wave_slowness (list[float]): Compressional slowness values. Unit: [slowness_unit]
+            s_wave_slowness (list[float]): Shear slowness values. Unit: [slowness_unit]
+            density (list[float]): Bulk density values. Unit: [density_unit]
+            slowness_unit (str): Unit of the slowness inputs. Defaults to "us/ft"
+            density_unit (str): Unit of the density inputs. Defaults to "kg/m3"
+            modulus_unit (str): Unit of the elastic moduli outputs. Defaults to "Pa"
 
         Returns:
             list[ElasticProperties]: Computed elastic properties for each input set."""
         return [
-            ElasticPropertiesConverter.convert_dynamic_elastic_properties_from_slowness(dtp, dts, rho)
+            ElasticPropertiesConverter.convert_dynamic_elastic_properties_from_slowness(dtp, dts, rho, slowness_unit=slowness_unit, density_unit=density_unit, modulus_unit=modulus_unit)
             for dtp, dts, rho in zip(p_wave_slowness, s_wave_slowness, density, strict=True)
         ]

@@ -1,6 +1,8 @@
 import math
 from dataclasses import dataclass
 
+from geomechpy.units import UnitConverter
+
 
 @dataclass(frozen=True)
 class HorizontalStresses:
@@ -25,25 +27,31 @@ class HorizontalStressesCalculation:
        Zhang, Jon Jincai. Applied petroleum geomechanics. Vol. 1. Cambridge: Gulf Professional Publishing, 2019 Chapter 6."""
 
     @staticmethod
-    def calculate_poroelastic_horizontal_stresses(overburden_stress: float, pore_pressure: float, poisson_ratio: float, youngs_modulus: float, biot_coefficient: float = 1.0, EX: float = 0.0001, EY: float = 0.009) -> HorizontalStresses:
+    def calculate_poroelastic_horizontal_stresses(overburden_stress: float, pore_pressure: float, poisson_ratio: float, youngs_modulus: float, biot_coefficient: float = 1.0, EX: float = 0.0001, EY: float = 0.009, pressure_unit: str = "psi", modulus_unit: str = "Mpsi") -> HorizontalStresses:
         """Calculates horizontal stress using Poroelastic horizontal stress equation.
 
         Reference: Thiercelin, Marc Jean, and Richard A. Plumb. "Core-based prediction of lithologic stress contrasts in East Texas formations." SPE Formation Evaluation 9.04 (1994): 251-258.
 
         Args:
-            overburden_stress (float): Array of overburden stress values.
-            pore_pressure (float): Array of pore pressure values. Unit: Pressure Unit [psi].
+            overburden_stress (float): Overburden stress magnitude. Unit: Pressure Unit [pressure_unit].
+            pore_pressure (float): Pore pressure magnitude. Unit: Pressure Unit [pressure_unit].
             poisson_ratio (float): Static Poisson's ratio. Unit: unitless.
-            youngs_modulus (float): Static Young's modulus. Unit: [Mpsi].
+            youngs_modulus (float): Static Young's modulus. Unit: [modulus_unit].
             biot_coefficient (float): Biot's coefficient. Defaults to 1.0
             EX (float): Tectonic strain term Unit: unitless Defaults to 0.0001.
             EY (float): Tectonic strain term Unit: unitless Defaults to 0.009.
+            pressure_unit (str): Unit of the stress/pressure inputs and outputs (e.g. "psi", "kPa", "MPa"). Defaults to "psi".
+            modulus_unit (str): Unit of the Young's modulus input (e.g. "Mpsi", "GPa"). Defaults to "Mpsi".
 
         Returns:
-            shmin (float): Minimum horizontal stress magnitude Unit [psi].
-            shmax (float): MAximum horizontal stress magnitude Unit [psi].
+            shmin (float): Minimum horizontal stress magnitude Unit [pressure_unit].
+            shmax (float): MAximum horizontal stress magnitude Unit [pressure_unit].
             q_factor (float): Stress Regime Indicator. Unit [unitless].
             shmax_shmin_ratio (float): Stress ratio. Unit [unitless]."""
+        overburden_stress = UnitConverter.convert_pressure(overburden_stress, pressure_unit, "psi")
+        pore_pressure = UnitConverter.convert_pressure(pore_pressure, pressure_unit, "psi")
+        youngs_modulus = UnitConverter.convert_pressure(youngs_modulus, modulus_unit, "Mpsi")
+
         EX = float(EX) / 1e-3
         EY = float(EY) / 1e-3
         A = poisson_ratio / (1 - poisson_ratio)
@@ -55,6 +63,9 @@ class HorizontalStressesCalculation:
 
         q_factor = HorizontalStressesCalculation.calculate_stress_regime_q_factor(0.0, shmax, shmin)
         shmax_shmin_ratio = HorizontalStressesCalculation.calculate_horizontal_stress_ratio(shmax, shmin)
+
+        shmin = UnitConverter.convert_pressure(shmin, "psi", pressure_unit)
+        shmax = UnitConverter.convert_pressure(shmax, "psi", pressure_unit)
 
         return HorizontalStresses(shmin, shmax, q_factor, shmax_shmin_ratio)
 
@@ -114,17 +125,19 @@ class HorizontalStressesCalculation:
         return shmax_shmin_ratio
 
     @staticmethod
-    def calculate_poroelastic_horizontal_stresses_array(overburden_stress: list[float], pore_pressure: list[float], poisson_ratio: list[float], youngs_modulus: list[float], biot_coefficient: list[float], EX: float = 0.0001, EY: float = 0.009) -> list[HorizontalStresses]:
+    def calculate_poroelastic_horizontal_stresses_array(overburden_stress: list[float], pore_pressure: list[float], poisson_ratio: list[float], youngs_modulus: list[float], biot_coefficient: list[float], EX: float = 0.0001, EY: float = 0.009, pressure_unit: str = "psi", modulus_unit: str = "Mpsi") -> list[HorizontalStresses]:
         """Calculates horizontal stresses for arrays of inputs using the Poroelastic horizontal stress equation.
 
         Args:
-            overburden_stress (list[float]): Overburden stress values. Unit: Pressure Unit [psi].
-            pore_pressure (list[float]): Pore pressure values. Unit: Pressure Unit [psi].
+            overburden_stress (list[float]): Overburden stress values. Unit: Pressure Unit [pressure_unit].
+            pore_pressure (list[float]): Pore pressure values. Unit: Pressure Unit [pressure_unit].
             poisson_ratio (list[float]): Static Poisson's ratio values. Unit: unitless.
-            youngs_modulus (list[float]): Static Young's modulus values. Unit: [Mpsi].
+            youngs_modulus (list[float]): Static Young's modulus values. Unit: [modulus_unit].
             biot_coefficient (float): Biot's coefficient. Defaults to 1.0
             EX (float): Tectonic strain term. Unit: unitless. Defaults to 0.0001.
             EY (float): Tectonic strain term. Unit: unitless. Defaults to 0.009.
+            pressure_unit (str): Unit of the stress/pressure inputs and outputs (e.g. "psi", "kPa", "MPa"). Defaults to "psi".
+            modulus_unit (str): Unit of the Young's modulus inputs (e.g. "Mpsi", "GPa"). Defaults to "Mpsi".
 
         Returns:
             list[HorizontalStresses]: HorizontalStresses entries for each set of input values."""
@@ -137,6 +150,8 @@ class HorizontalStressesCalculation:
                 biot_coefficient=bc,
                 EX=EX,
                 EY=EY,
+                pressure_unit=pressure_unit,
+                modulus_unit=modulus_unit,
             )
             for ovb, pp, pr, ym, bc in zip(overburden_stress, pore_pressure, poisson_ratio, youngs_modulus, biot_coefficient, strict=True)
         ]
