@@ -67,7 +67,7 @@ class TestMoralesCorrelation:
 class TestCustomCorrelations:
     def test_custom_power_law(self) -> None:
         result = StaticElasticPropertiesConverter.convert_dyn2sta_yme_custom_power_law(
-            measurement=10.0, multiplier=2.0, exponent=0.5
+            yme_dyn=10.0, multiplier=2.0, exponent=0.5
         )
         assert result == pytest.approx(2.0 * 10.0**0.5, rel=TOLERANCE)
 
