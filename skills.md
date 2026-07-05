@@ -63,12 +63,15 @@ In addition, calculations are unit-flexible: unit-agnostic methods (elastic modu
 |---|---|---|
 | Onshore overburden from lithostatic gradient | `OverburdenStressCalculation.calculate_overburden_stress_onshore` | Handles air gap |
 | Offshore overburden from lithostatic gradient | `OverburdenStressCalculation.calculate_overburden_stress_offshore` | Handles air gap + water column |
+| Depth-integrated overburden from a density log | `calculate_overburden_stress_from_density_array` | Trapezoidal integration of rho(z)g; handles air gap + water column |
 
 ### Horizontal Stresses (`geomechpy.stress_calculations`)
 
 | Capability | Class / Function | Notes |
 |---|---|---|
 | Poroelastic horizontal stresses | `HorizontalStressesCalculation.calculate_poroelastic_horizontal_stresses` | Thiercelin & Plumb (1994) with tectonic strain terms |
+| Eaton's method (uniaxial strain) | `calculate_shmin_eaton` | Shmin from Sv, Pp, Poisson's ratio; optional Biot and additive tectonic stress |
+| Calibrated effective stress ratio | `calculate_shmin_effective_stress_ratio` | Shmin = K0(Sv - Pp) + Pp with K0 from LOT/minifrac calibration |
 | SHmax from multiplier | `calculate_shmax_multiplier` | Simple anisotropy multiplier on Shmin |
 | Stress regime q-factor | `calculate_stress_regime_q_factor` | Normal / strike-slip / reverse indicator (Prats, 1981) |
 | SHmax/Shmin ratio | `calculate_horizontal_stress_ratio` | Anisotropy measure |
@@ -95,6 +98,17 @@ In addition, calculations are unit-flexible: unit-agnostic methods (elastic modu
 |---|---|---|
 | Breakdown pressure (vertical well) | `WellboreStabilityCalculation.calculate_breakdown_calculation_vertical_well_analytical` | Hubbert & Willis tensile fracture initiation |
 | Breakout pressure (vertical well) | `calculate_breakout_calculation_vertical_well_mohr_coulomb_analytical` | Mohr-Coulomb, three borehole-wall stress orderings |
+| Breakout pressure (deviated/inclined well) | `calculate_breakout_pressure_deviated_well_mohr_coulomb` | Numerical Mohr-Coulomb on the borehole wall for any well trajectory |
+| Breakdown pressure (deviated/inclined well) | `calculate_breakdown_pressure_deviated_well` | Numerical tensile failure limit for any well trajectory |
+| Full mud weight window | `calculate_mud_weight_window_vertical_well`, `calculate_mud_weight_window_deviated_well` | Kick / breakout / loss / breakdown limits in one `MudWeightWindow` result |
+
+### Fracture Gradient (`geomechpy.fracture_gradient`)
+
+| Capability | Class / Function | Notes |
+|---|---|---|
+| Hubbert & Willis (1957) | `FractureGradientCalculation.calculate_fracture_pressure_hubbert_willis_min` / `_max` | Lower/upper bound fracture pressure |
+| Matthews & Kelly (1967) | `calculate_fracture_pressure_matthews_kelly` | Calibrated matrix stress coefficient Ki |
+| Eaton (1969) | `calculate_fracture_pressure_eaton` | Poisson's ratio based; equals Eaton Shmin |
 
 ---
 
@@ -118,11 +132,12 @@ In addition, calculations are unit-flexible: unit-agnostic methods (elastic modu
 - **Dynamic moduli from logs**: sonic velocity or slowness plus bulk density to dynamic K, E, λ, G, ν, M and Vp/Vs.
 - **Dynamic → static calibration**: 4 published Young's modulus correlations plus custom power/linear laws.
 - **Pore pressure**: hydrostatic/gradient-based profiles for onshore and offshore wells, including air gap and water depth handling.
-- **Overburden stress**: lithostatic-gradient-based profiles for onshore and offshore wells.
-- **Horizontal stresses**: poroelastic (tectonic strain) Shmin/SHmax, SHmax multiplier method, stress regime classification.
+- **Overburden stress**: lithostatic-gradient-based profiles and depth-integrated density-log profiles for onshore and offshore wells.
+- **Horizontal stresses**: poroelastic (tectonic strain) Shmin/SHmax, Eaton's method, calibrated effective stress ratio, SHmax multiplier method, stress regime classification.
 - **Rock strength**: UCS (Plumb), tensile strength (UCS multiplier), friction angle (Lal).
 - **Near-wellbore stresses**: Kirsch solution on the borehole wall for arbitrary well orientation, principal stresses and tortuosity.
-- **Wellbore stability**: breakdown (fracture initiation) and breakout (shear failure) mud pressures for vertical wells.
+- **Wellbore stability**: breakdown and breakout mud pressures for vertical wells (analytical) and deviated/inclined wells (numerical), plus the full kick/breakout/loss/breakdown mud weight window.
+- **Fracture gradient**: Hubbert & Willis, Matthews & Kelly, and Eaton fracture pressure estimates.
 
 ---
 
@@ -131,11 +146,6 @@ In addition, calculations are unit-flexible: unit-agnostic methods (elastic modu
 Being a young library (v0.0.1), several standard geomechanics workflows are not implemented yet:
 
 - **Pore pressure prediction methods** — Eaton's resistivity/sonic method, Bowers method, equivalent depth method (only gradient-based pore pressure is available today).
-- **Eaton's method for minimum horizontal stress** and other effective-stress-ratio approaches.
-- **Depth-integrated overburden stress** from a density log (currently constant-gradient only).
-- **Wellbore stability for deviated wells** — the analytical breakout/breakdown limits currently assume a vertical well, even though near-wellbore stresses support any orientation.
-- **Full mud weight window** computation (kick / breakout / loss / breakdown limits in one call).
-- **Fracture gradient estimation** (e.g., Matthews-Kelly, Eaton fracture gradient).
 - **Additional failure criteria** — Mogi-Coulomb, Drucker-Prager, modified Lade.
 - **More rock strength correlations** — sonic- and porosity-based UCS correlations (McNally, Chang et al. compilation).
 - **Thermal and poroelastic time-dependent wellbore effects.**

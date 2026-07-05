@@ -16,11 +16,12 @@ Every calculation is available in a single-value form and an `_array` form for d
 - **Dynamic elastic properties** — compute dynamic moduli from sonic velocities (Vp/Vs) or slownesses (DTCO/DTSH) plus bulk density.
 - **Dynamic-to-static conversion** — published correlations (Bradford, Najibi, Fuller, Morales) and custom power/linear laws.
 - **Pore pressure** — gradient-based pore pressure profiles for onshore and offshore settings.
-- **Overburden stress** — lithostatic-gradient-based vertical stress profiles for onshore and offshore settings.
-- **Horizontal stresses** — poroelastic (tectonic strain) Shmin/SHmax, SHmax multiplier method, stress regime q-factor.
+- **Overburden stress** — lithostatic-gradient profiles or depth-integrated density-log profiles, onshore and offshore.
+- **Horizontal stresses** — poroelastic (tectonic strain) Shmin/SHmax, Eaton's method, calibrated effective stress ratio, SHmax multiplier, stress regime q-factor.
 - **Rock strength** — UCS (Plumb), tensile strength, friction angle (Lal) correlations.
 - **Near-wellbore stresses** — Kirsch borehole wall stresses for arbitrary well orientation, principal stresses and tortuosity.
-- **Wellbore stability** — breakout (Mohr-Coulomb shear failure) and breakdown (fracture initiation) pressures for vertical wells.
+- **Wellbore stability** — breakout and breakdown pressures for vertical wells (analytical) and deviated/inclined wells (numerical), plus the full kick/breakout/loss/breakdown mud weight window.
+- **Fracture gradient** — Hubbert & Willis, Matthews & Kelly, and Eaton estimates.
 
 ## Installation
 
@@ -119,6 +120,14 @@ breakdown = WellboreStabilityCalculation.calculate_breakdown_calculation_vertica
     tstr=750.0,   # psi
 )
 print(f"Safe mud pressure window: {breakout:.0f} - {breakdown:.0f} psi")
+
+# Or get the full window (kick / breakout / loss / breakdown) in one call,
+# including for deviated wells:
+window = WellboreStabilityCalculation.calculate_mud_weight_window_deviated_well(
+    shmax=stresses.shmax, shmin=stresses.shmin, pprs=1400.0, overburden_stress=3000.0,
+    ucs=5000.0, fang=30.0, pr_sta=0.25, tstr=750.0,
+    borehole_deviation=45.0, borehole_azimuth=90.0,
+)
 ```
 
 ### 4. Working in your preferred units

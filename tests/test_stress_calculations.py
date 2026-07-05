@@ -120,3 +120,59 @@ class TestPoroelasticHorizontalStresses:
         expected = poisson_factor * 10000 + (1 - poisson_factor) * 4700
         assert result.shmin == pytest.approx(expected, rel=TOLERANCE)
         assert result.shmax == pytest.approx(expected, rel=TOLERANCE)
+
+
+class TestShminEaton:
+    def test_known_value(self) -> None:
+        # v/(1-v)*(Sv - Pp) + Pp = (0.25/0.75)*5300 + 4700 = 6466.67
+        result = HorizontalStressesCalculation.calculate_shmin_eaton(
+            overburden_stress=10000.0, pore_pressure=4700.0, poisson_ratio=0.25
+        )
+        assert result == pytest.approx(4700 + 5300 / 3, rel=TOLERANCE)
+
+    def test_biot_coefficient(self) -> None:
+        biot = 0.8
+        result = HorizontalStressesCalculation.calculate_shmin_eaton(
+            overburden_stress=10000.0, pore_pressure=4700.0, poisson_ratio=0.25, biot_coefficient=biot
+        )
+        expected = (0.25 / 0.75) * (10000 - biot * 4700) + biot * 4700
+        assert result == pytest.approx(expected, rel=TOLERANCE)
+
+    def test_tectonic_stress_is_additive(self) -> None:
+        base = HorizontalStressesCalculation.calculate_shmin_eaton(
+            overburden_stress=10000.0, pore_pressure=4700.0, poisson_ratio=0.25
+        )
+        with_tectonic = HorizontalStressesCalculation.calculate_shmin_eaton(
+            overburden_stress=10000.0, pore_pressure=4700.0, poisson_ratio=0.25, tectonic_stress=500.0
+        )
+        assert with_tectonic == pytest.approx(base + 500.0, rel=TOLERANCE)
+
+    def test_matches_poroelastic_with_zero_strain(self) -> None:
+        eaton = HorizontalStressesCalculation.calculate_shmin_eaton(
+            overburden_stress=10000.0, pore_pressure=4700.0, poisson_ratio=0.25
+        )
+        poroelastic = HorizontalStressesCalculation.calculate_poroelastic_horizontal_stresses(
+            overburden_stress=10000.0, pore_pressure=4700.0, poisson_ratio=0.25, youngs_modulus=2.0, EX=0.0, EY=0.0
+        )
+        assert eaton == pytest.approx(poroelastic.shmin, rel=TOLERANCE)
+
+
+class TestShminEffectiveStressRatio:
+    def test_known_value(self) -> None:
+        # K0*(Sv - Pp) + Pp = 0.8*5300 + 4700 = 8940
+        result = HorizontalStressesCalculation.calculate_shmin_effective_stress_ratio(
+            overburden_stress=10000.0, pore_pressure=4700.0, effective_stress_ratio=0.8
+        )
+        assert result == pytest.approx(8940.0, rel=TOLERANCE)
+
+    def test_ratio_of_one_returns_overburden(self) -> None:
+        result = HorizontalStressesCalculation.calculate_shmin_effective_stress_ratio(
+            overburden_stress=10000.0, pore_pressure=4700.0, effective_stress_ratio=1.0
+        )
+        assert result == pytest.approx(10000.0, rel=TOLERANCE)
+
+    def test_array_version(self) -> None:
+        result = HorizontalStressesCalculation.calculate_shmin_effective_stress_ratio_array(
+            overburden_stress=[10000.0, 12000.0], pore_pressure=[4700.0, 5600.0], effective_stress_ratio=0.8
+        )
+        assert result == pytest.approx([8940.0, 10720.0], rel=TOLERANCE)
