@@ -6,6 +6,16 @@ GeomechPy is a Python library for building **1D geomechanics workflows** (Mechan
 
 ## Current Capabilities
 
+### High-Level Workflow (`geomechpy.mem`)
+
+| Capability | Class / Function | Notes |
+|---|---|---|
+| Full MEM in one call | `MechanicalEarthModel.calculate_all` | Logs in → dynamic/static moduli, strength, Pp, Sv, Shmin/SHmax, mud weight window |
+| Step-by-step chaining | `calculate_elastic_properties()` → ... → `calculate_wellbore_stability()` | Each step delegates to the calculation classes; descriptive errors when called out of order |
+| Export | `to_dataframe()` | Depth-indexed DataFrame of the inputs and every computed curve |
+
+Every calculation class also has a short alias (`PorePressure`, `Overburden`, `HorizontalStress`, `FractureGradient`, `RockStrength`, `WellboreStability`, `NearWellboreStresses`, `DynamicElastic`, `StaticElastic`, `ElasticConverter`, `Units`); the long names remain canonical.
+
 ### Units (`geomechpy.units`)
 
 | Capability | Class / Function | Notes |
@@ -137,7 +147,7 @@ matplotlib is an optional dependency (`pip install geomechpy[plotting]`). Every 
 - **Complete pairwise elastic moduli conversion** — any two known moduli can be converted into the full set.
 - **Scalar and array APIs** — every calculation has a single-value form and an `_array` form (`list[float]` in, `list` out) for depth-indexed logs.
 - **Immutable result objects** — multi-valued results are returned as frozen dataclasses (`ElasticProperties`, `HorizontalStresses`, `BoreholeWallStresses`, ...).
-- **Literature-backed** — methods cite their sources (Zhang 2019, Jaeger, Cook & Zimmerman 2009, Fjaer et al. 2008, SPE papers) directly in docstrings.
+- **Literature-backed** — methods cite their sources (Zhang 2019, Jaeger, Cook & Zimmerman 2009, Fjaer et al. 2008, SPE papers) directly in docstrings, and key methods carry runnable `>>>` examples verified by doctests.
 - **Explicit units** — every docstring states the expected input and output units.
 - **Unit flexibility** — a built-in `UnitConverter` plus optional unit arguments on unit-bound calculations (field or SI units, mud weight units, arbitrary gradient combinations).
 - **Arbitrary borehole orientation** for near-wellbore stress analysis via full stress tensor rotation.
@@ -147,6 +157,7 @@ matplotlib is an optional dependency (`pip install geomechpy[plotting]`). Every 
 
 ## Supported Calculations (Summary)
 
+- **High-level workflow**: the `MechanicalEarthModel` class chains the full log-to-mud-window pipeline.
 - **Unit conversions**: pressure/modulus, depth, density, velocity, slowness, pressure gradient (including ppg/SG mud weight units), and mud weight ↔ downhole pressure.
 - **DataFrame tools**: convert result dataclasses to pandas DataFrames and append them to depth-indexed logs.
 - **Plotting**: mud weight window, multi-track MEM profile, stress polygon and elastic property logs (matplotlib).

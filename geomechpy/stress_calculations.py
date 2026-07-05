@@ -91,7 +91,12 @@ class HorizontalStressesCalculation:
             tectonic_stress (float): Optional additive tectonic stress correction. Unit: same pressure unit. Defaults to 0.0
 
         Returns:
-            shmin (float): Minimum horizontal stress magnitude. Unit: same pressure unit as the inputs"""
+            shmin (float): Minimum horizontal stress magnitude. Unit: same pressure unit as the inputs
+
+        Example:
+            >>> round(HorizontalStressesCalculation.calculate_shmin_eaton(
+            ...     overburden_stress=10000.0, pore_pressure=4700.0, poisson_ratio=0.25), 2)
+            6466.67"""
         effective_stress_ratio = poisson_ratio / (1 - poisson_ratio)
         shmin = effective_stress_ratio * (overburden_stress - biot_coefficient * pore_pressure) + biot_coefficient * pore_pressure + tectonic_stress
 
@@ -119,7 +124,12 @@ class HorizontalStressesCalculation:
             tectonic_stress (float): Optional additive tectonic stress correction. Unit: same pressure unit. Defaults to 0.0
 
         Returns:
-            shmin (float): Minimum horizontal stress magnitude. Unit: same pressure unit as the inputs"""
+            shmin (float): Minimum horizontal stress magnitude. Unit: same pressure unit as the inputs
+
+        Example:
+            >>> HorizontalStressesCalculation.calculate_shmin_effective_stress_ratio(
+            ...     overburden_stress=10000.0, pore_pressure=4700.0, effective_stress_ratio=0.8)
+            8940.0"""
         shmin = effective_stress_ratio * (overburden_stress - biot_coefficient * pore_pressure) + biot_coefficient * pore_pressure + tectonic_stress
 
         return float(shmin)

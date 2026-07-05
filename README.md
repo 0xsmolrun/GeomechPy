@@ -48,6 +48,34 @@ Requires Python 3.10+.
 
 ## Quick Start
 
+### The 60-second Mechanical Earth Model
+
+The high-level `MechanicalEarthModel` runs the whole chain — dynamic moduli, static
+calibration, rock strength, pore pressure, density-integrated overburden, horizontal
+stresses and the mud weight window — in one call:
+
+```python
+from geomechpy import MechanicalEarthModel
+
+mem = MechanicalEarthModel(
+    tvd=[8000.0, 9000.0, 10000.0],       # ft
+    dtco=[85.0, 80.0, 76.0],             # us/ft
+    dtsh=[150.0, 140.0, 132.0],          # us/ft
+    rhob=[2500.0, 2550.0, 2600.0],       # kg/m3
+)
+mem.calculate_all(pore_pressure_gradient=9.0, gradient_unit="ppg")
+
+mem.mud_weight_window[-1]     # kick / breakout / loss / breakdown at TD
+mem.results["emw_lower"]      # safe window lower bound in ppg, per depth
+df = mem.to_dataframe()       # everything as a depth-indexed DataFrame
+```
+
+Each step is also available individually and chainable
+(`mem.calculate_elastic_properties(calibration="bradford").calculate_rock_strength()...`),
+and every step delegates to the calculation classes below, which remain the
+fine-grained API. Short aliases exist for all of them
+(`PorePressure`, `Overburden`, `HorizontalStress`, `WellboreStability`, `Units`, ...).
+
 ### 1. Dynamic elastic properties from sonic logs
 
 ```python

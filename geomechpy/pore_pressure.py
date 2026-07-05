@@ -27,7 +27,14 @@ class PorePressureCalculation:
             pressure_unit (str): Unit of the pressure output and gradient numerator (e.g. "psi", "kPa", "MPa"). Defaults to "psi"
 
         Returns:
-            pore_pressure (float): Pore pressure for onshore setting. Unit: Pressure Unit [pressure_unit]"""
+            pore_pressure (float): Pore pressure for onshore setting. Unit: Pressure Unit [pressure_unit]
+
+        Example:
+            >>> PorePressureCalculation.calculate_pore_pressure_onshore(tvd=10000.0)
+            4700.0
+            >>> round(PorePressureCalculation.calculate_pore_pressure_onshore(
+            ...     tvd=10000.0, formation_pore_pressure_gradient=9.0, gradient_unit="ppg"), 1)
+            4675.3"""
         if gradient_unit is None:
             gradient_unit = f"{pressure_unit}/{depth_unit}"
         tvd = UnitConverter.convert_depth(tvd, depth_unit, "ft")

@@ -57,6 +57,11 @@ class WellboreStabilityCalculation:
 
         Returns:
            pw_breakdown (float): Breakdown (fracture initiation) pressure. Unit: same pressure unit as the inputs
+
+        Example:
+           >>> WellboreStabilityCalculation.calculate_breakdown_calculation_vertical_well_analytical(
+           ...     shmax=12000.0, shmin=10000.0, pprs=5000.0, tstr=750.0)
+           13750.0
         """
 
         pw_breakdown = 3 * shmin - shmax - pprs + tstr
@@ -89,6 +94,12 @@ class WellboreStabilityCalculation:
 
         Returns:
            pw_breakout (float): Breakout (shear failure) pressure. Unit: same pressure unit as the inputs
+
+        Example:
+           >>> round(WellboreStabilityCalculation.calculate_breakout_calculation_vertical_well_mohr_coulomb_analytical(
+           ...     shmax=12000.0, shmin=10000.0, pprs=5000.0, overburden_stress=13000.0,
+           ...     ucs=5000.0, fang=30.0, pr_sta=0.25), 1)
+           7750.0
         """
         q = math.tan(math.radians(45) + math.radians(fang / 2)) ** 2
         CC = ucs - pprs * (q - 1)
@@ -350,7 +361,14 @@ class WellboreStabilityCalculation:
            tstr (float): Tensile rock strength. Unit: same pressure unit
 
         Returns:
-           MudWeightWindow: Dataclass with kick, breakout, loss and breakdown pressures. See `MudWeightWindow` for details. Unit: same pressure unit as the inputs"""
+           MudWeightWindow: Dataclass with kick, breakout, loss and breakdown pressures. See `MudWeightWindow` for details. Unit: same pressure unit as the inputs
+
+        Example:
+           >>> window = WellboreStabilityCalculation.calculate_mud_weight_window_vertical_well(
+           ...     shmax=12000.0, shmin=10000.0, pprs=5000.0, overburden_stress=13000.0,
+           ...     ucs=5000.0, fang=30.0, pr_sta=0.25, tstr=750.0)
+           >>> round(window.breakout_pressure, 1), round(window.loss_pressure, 1)
+           (7750.0, 10000.0)"""
         breakout_pressure = WellboreStabilityCalculation.calculate_breakout_calculation_vertical_well_mohr_coulomb_analytical(
             shmax=shmax, shmin=shmin, pprs=pprs, overburden_stress=overburden_stress, ucs=ucs, fang=fang, pr_sta=pr_sta
         )
