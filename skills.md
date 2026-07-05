@@ -182,4 +182,4 @@ Being a young library (v0.0.1), several standard geomechanics workflows are not 
 - **Mud weight design**: estimating breakout and breakdown pressure limits for vertical wells.
 - **Log-based rock property estimation**: dynamic moduli from sonic logs, static calibration against core, strength correlations.
 - **Near-wellbore stress analysis** for arbitrary well trajectories (input to image-log breakout interpretation and sanding studies).
-- **Teaching and prototyping**: transparent, literature-referenced implementations that are easy to inspect and validate — see the executed notebooks in `examples/`.
+- **Teaching and prototyping**: transparent, literature-referenced implementations that are easy to inspect and validate — see the executed notebooks and the interactive Streamlit MEM dashboard in `examples/`.

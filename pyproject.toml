@@ -23,6 +23,14 @@ pandas = [
 plotting = [
     "matplotlib>=3.6",
 ]
+plotly = [
+    "plotly>=5.18",
+]
+streamlit = [
+    "streamlit>=1.30",
+    "plotly>=5.18",
+    "pandas>=1.5",
+]
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.1"
