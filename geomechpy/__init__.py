@@ -12,6 +12,7 @@ from geomechpy.elastic_properties import ElasticProperties, ElasticPropertiesCon
 from geomechpy.fracture_gradient import FractureGradientCalculation
 from geomechpy.near_wellbore_stresses import BoreholeWallStresses, NearWellboreStressesCalculation, PrincipalStresses
 from geomechpy.overburden_stress import OverburdenStressCalculation
+from geomechpy.plotting import plot_elastic_properties, plot_mem_profile, plot_mud_weight_window, plot_stress_polygon
 from geomechpy.pore_pressure import PorePressureCalculation
 from geomechpy.rock_strength import RockStrengthPropertiesConverter
 from geomechpy.static_elastic_properties import StaticElasticPropertiesConverter
@@ -34,6 +35,10 @@ __all__ = [
     "MudWeightWindow",
     "NearWellboreStressesCalculation",
     "OverburdenStressCalculation",
+    "plot_elastic_properties",
+    "plot_mem_profile",
+    "plot_mud_weight_window",
+    "plot_stress_polygon",
     "PorePressureCalculation",
     "PrincipalStresses",
     "results_to_dataframe",

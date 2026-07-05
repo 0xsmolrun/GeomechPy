@@ -111,6 +111,17 @@ pandas is an optional dependency (`pip install geomechpy[pandas]`); the `_array`
 | Breakdown pressure (deviated/inclined well) | `calculate_breakdown_pressure_deviated_well` | Numerical tensile failure limit for any well trajectory |
 | Full mud weight window | `calculate_mud_weight_window_vertical_well`, `calculate_mud_weight_window_deviated_well` | Kick / breakout / loss / breakdown limits in one `MudWeightWindow` result |
 
+### Plotting (`geomechpy.plotting`)
+
+| Capability | Class / Function | Notes |
+|---|---|---|
+| Mud weight window plot | `plot_mud_weight_window` | Kick/breakout/loss/breakdown vs depth, safe window shaded, pressure or EMW axis, optional mud plan overlay |
+| Multi-track MEM profile | `plot_mem_profile` | Industry-style composite: any number of tracks, each with named curves, shared depth axis |
+| Stress polygon | `plot_stress_polygon` | Zoback frictional-limit polygon with NF/SS/RF regions and the current stress state |
+| Elastic property log | `plot_elastic_properties` | Young's modulus (dynamic + optional static overlay), Poisson's ratio, Vp/Vs vs depth |
+
+matplotlib is an optional dependency (`pip install geomechpy[plotting]`). Every function returns the `Figure` for further customization or saving; depth axes are drawn increasing downwards.
+
 ### Fracture Gradient (`geomechpy.fracture_gradient`)
 
 | Capability | Class / Function | Notes |
@@ -138,6 +149,7 @@ pandas is an optional dependency (`pip install geomechpy[pandas]`); the `_array`
 
 - **Unit conversions**: pressure/modulus, depth, density, velocity, slowness, pressure gradient (including ppg/SG mud weight units), and mud weight ↔ downhole pressure.
 - **DataFrame tools**: convert result dataclasses to pandas DataFrames and append them to depth-indexed logs.
+- **Plotting**: mud weight window, multi-track MEM profile, stress polygon and elastic property logs (matplotlib).
 - **Elastic moduli conversions**: 15 pairwise conversions between K, E, λ, G, ν and M.
 - **Dynamic moduli from logs**: sonic velocity or slowness plus bulk density to dynamic K, E, λ, G, ν, M and Vp/Vs.
 - **Dynamic → static calibration**: 4 published Young's modulus correlations plus custom power/linear laws.
@@ -170,4 +182,4 @@ Being a young library (v0.0.1), several standard geomechanics workflows are not 
 - **Mud weight design**: estimating breakout and breakdown pressure limits for vertical wells.
 - **Log-based rock property estimation**: dynamic moduli from sonic logs, static calibration against core, strength correlations.
 - **Near-wellbore stress analysis** for arbitrary well trajectories (input to image-log breakout interpretation and sanding studies).
-- **Teaching and prototyping**: transparent, literature-referenced implementations that are easy to inspect and validate.
+- **Teaching and prototyping**: transparent, literature-referenced implementations that are easy to inspect and validate — see the executed notebooks in `examples/`.

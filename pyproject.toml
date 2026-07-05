@@ -20,6 +20,9 @@ dependencies = [
 pandas = [
     "pandas>=1.5",
 ]
+plotting = [
+    "matplotlib>=3.6",
+]
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.1"

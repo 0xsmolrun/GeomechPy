@@ -23,6 +23,7 @@ Every calculation is available in a single-value form and an `_array` form for d
 - **Wellbore stability** — breakout and breakdown pressures for vertical wells (analytical) and deviated/inclined wells (numerical), plus the full kick/breakout/loss/breakdown mud weight window.
 - **Fracture gradient** — Hubbert & Willis, Matthews & Kelly, and Eaton estimates.
 - **pandas-friendly** — optional helpers to move results in and out of depth-indexed DataFrames.
+- **Plotting** — mud weight window, multi-track MEM profiles, stress polygon and elastic property logs (matplotlib, optional).
 
 ## Installation
 
@@ -31,8 +32,8 @@ GeomechPy is not yet published to PyPI. Install it from source:
 ```bash
 git clone https://github.com/0xsmolrun/GeomechPy.git
 cd GeomechPy
-pip install .            # core library (numpy only)
-pip install .[pandas]    # with the optional pandas DataFrame helpers
+pip install .                     # core library (numpy only)
+pip install .[pandas,plotting]    # with the optional pandas helpers and matplotlib plots
 ```
 
 For development (with tests):
@@ -162,7 +163,30 @@ gradient = UnitConverter.convert_pressure_gradient(0.47, "psi/ft", "kPa/m")
 
 Unit-agnostic calculations (elastic moduli conversions, wellbore stability, near-wellbore stresses) work with any consistent pressure unit and return results in that same unit.
 
-### 5. Depth-indexed data with pandas
+### 5. Visualization
+
+```python
+from geomechpy import plot_mud_weight_window, plot_mem_profile, plot_stress_polygon
+
+# The classic mud weight window in equivalent mud weight, safe window shaded
+figure = plot_mud_weight_window(tvd, windows, as_mud_weight=True, mud_weight_unit="ppg")
+figure.savefig("mud_weight_window.png", dpi=200)
+
+# Industry-style multi-track MEM composite
+figure = plot_mem_profile(
+    tvd,
+    tracks={
+        "Pressures & Stresses": {"Pp": pore_pressure, "Shmin": shmin, "Sv": overburden},
+        "Rock Strength": {"UCS": ucs},
+    },
+    track_units={"Pressures & Stresses": "psi", "Rock Strength": "psi"},
+)
+
+# Where does the stress state sit relative to the faulting regimes?
+figure = plot_stress_polygon(shmin=8000, shmax=9000, overburden_stress=10000, pore_pressure=4500)
+```
+
+### 6. Depth-indexed data with pandas
 
 ```python
 import pandas as pd
@@ -182,6 +206,13 @@ results = DynamicElasticPropertiesCalculation.calculate_from_slowness_array(
 logs = add_results_to_dataframe(logs, results, prefix="dyn_")
 print(logs[["dtco", "dyn_youngs_modulus", "dyn_poissons_ratio", "dyn_vp_vs_ratio"]])
 ```
+
+## Examples
+
+Two fully executed notebooks live in [`examples/`](./examples):
+
+- [`01_basic_calculations.ipynb`](./examples/01_basic_calculations.ipynb) — every core calculation step by step: elastic properties, static calibration, rock strength, pore pressure/overburden, horizontal stresses, vertical and deviated wellbore stability, and unit handling.
+- [`02_full_mem_workflow.ipynb`](./examples/02_full_mem_workflow.ipynb) — a complete 1D Mechanical Earth Model built from synthetic well logs: log data → dynamic/static properties → strength → stresses → mud weight window, finished with the standard MEM displays.
 
 ## Documentation
 
