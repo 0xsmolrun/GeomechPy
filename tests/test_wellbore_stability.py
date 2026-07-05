@@ -1,7 +1,7 @@
 import math
 
 import pytest
-from geomechpy.wellbore_stability import WellboreStabilityCalculation
+from geomechpy.wellbore_stability import MudWeightWindow, WellboreStabilityCalculation
 
 TOLERANCE = 1e-6
 
@@ -99,3 +99,101 @@ class TestBreakoutPressure:
             pr_sta=poisson_ratio_static,
         )
         assert result == pytest.approx(expected_breakout, rel=TOLERANCE)
+
+
+class TestDeviatedWellBreakout:
+    def test_vertical_limit_matches_analytical(self) -> None:
+        # A well with zero deviation must reproduce the analytical vertical solution
+        analytical = WellboreStabilityCalculation.calculate_breakout_calculation_vertical_well_mohr_coulomb_analytical(
+            shmax=12000.0, shmin=10000.0, pprs=5000.0, overburden_stress=13000.0, ucs=5000.0, fang=30.0, pr_sta=0.25
+        )
+        numerical = WellboreStabilityCalculation.calculate_breakout_pressure_deviated_well_mohr_coulomb(
+            shmax=12000.0, shmin=10000.0, overburden_stress=13000.0, pprs=5000.0, ucs=5000.0, fang=30.0, pr_sta=0.25,
+            borehole_deviation=0.0, borehole_azimuth=0.0,
+        )
+        assert numerical == pytest.approx(analytical, rel=1e-4)
+
+    def test_no_stable_pressure_raises(self) -> None:
+        # Extreme stress anisotropy with negligible strength: no mud pressure can stabilize
+        with pytest.raises(ValueError, match="No stable mud pressure"):
+            WellboreStabilityCalculation.calculate_breakout_pressure_deviated_well_mohr_coulomb(
+                shmax=30000.0, shmin=5000.0, overburden_stress=10000.0, pprs=4000.0, ucs=100.0, fang=10.0, pr_sta=0.25,
+                borehole_deviation=0.0, borehole_azimuth=0.0,
+            )
+
+
+class TestDeviatedWellBreakdown:
+    def test_vertical_limit_matches_analytical(self) -> None:
+        analytical = WellboreStabilityCalculation.calculate_breakdown_calculation_vertical_well_analytical(
+            shmax=12000.0, shmin=10000.0, pprs=5000.0, tstr=750.0
+        )
+        numerical = WellboreStabilityCalculation.calculate_breakdown_pressure_deviated_well(
+            shmax=12000.0, shmin=10000.0, overburden_stress=13000.0, pprs=5000.0, tstr=750.0, pr_sta=0.25,
+            borehole_deviation=0.0, borehole_azimuth=0.0,
+        )
+        assert numerical == pytest.approx(analytical, rel=1e-4)
+
+
+class TestMudWeightWindow:
+    def test_vertical_window_fields(self) -> None:
+        window = WellboreStabilityCalculation.calculate_mud_weight_window_vertical_well(
+            shmax=12000.0, shmin=10000.0, pprs=5000.0, overburden_stress=13000.0,
+            ucs=5000.0, fang=30.0, pr_sta=0.25, tstr=750.0,
+        )
+        assert isinstance(window, MudWeightWindow)
+        assert window.kick_pressure == pytest.approx(5000.0)
+        assert window.loss_pressure == pytest.approx(10000.0)
+        assert window.breakout_pressure == pytest.approx(
+            WellboreStabilityCalculation.calculate_breakout_calculation_vertical_well_mohr_coulomb_analytical(
+                shmax=12000.0, shmin=10000.0, pprs=5000.0, overburden_stress=13000.0, ucs=5000.0, fang=30.0, pr_sta=0.25
+            ),
+            rel=1e-9,
+        )
+        assert window.breakdown_pressure == pytest.approx(
+            WellboreStabilityCalculation.calculate_breakdown_calculation_vertical_well_analytical(
+                shmax=12000.0, shmin=10000.0, pprs=5000.0, tstr=750.0
+            ),
+            rel=1e-9,
+        )
+        # For this case a safe window exists
+        assert max(window.kick_pressure, window.breakout_pressure) < min(window.loss_pressure, window.breakdown_pressure)
+
+    def test_deviated_window_matches_vertical_at_zero_deviation(self) -> None:
+        vertical = WellboreStabilityCalculation.calculate_mud_weight_window_vertical_well(
+            shmax=12000.0, shmin=10000.0, pprs=5000.0, overburden_stress=13000.0,
+            ucs=5000.0, fang=30.0, pr_sta=0.25, tstr=750.0,
+        )
+        deviated = WellboreStabilityCalculation.calculate_mud_weight_window_deviated_well(
+            shmax=12000.0, shmin=10000.0, pprs=5000.0, overburden_stress=13000.0,
+            ucs=5000.0, fang=30.0, pr_sta=0.25, tstr=750.0,
+            borehole_deviation=0.0, borehole_azimuth=0.0,
+        )
+        assert deviated.breakout_pressure == pytest.approx(vertical.breakout_pressure, rel=1e-4)
+        assert deviated.breakdown_pressure == pytest.approx(vertical.breakdown_pressure, rel=1e-4)
+
+    def test_highly_deviated_well_narrows_the_window(self) -> None:
+        # In a normal faulting regime a highly deviated well is harder to keep stable:
+        # the breakout pressure rises and the breakdown pressure falls
+        vertical = WellboreStabilityCalculation.calculate_mud_weight_window_deviated_well(
+            shmax=8500.0, shmin=8000.0, pprs=4500.0, overburden_stress=10000.0,
+            ucs=4000.0, fang=30.0, pr_sta=0.25, tstr=500.0,
+            borehole_deviation=0.0, borehole_azimuth=0.0,
+        )
+        deviated = WellboreStabilityCalculation.calculate_mud_weight_window_deviated_well(
+            shmax=8500.0, shmin=8000.0, pprs=4500.0, overburden_stress=10000.0,
+            ucs=4000.0, fang=30.0, pr_sta=0.25, tstr=500.0,
+            borehole_deviation=70.0, borehole_azimuth=90.0,
+        )
+        vertical_window = min(vertical.loss_pressure, vertical.breakdown_pressure) - max(vertical.kick_pressure, vertical.breakout_pressure)
+        deviated_window = min(deviated.loss_pressure, deviated.breakdown_pressure) - max(deviated.kick_pressure, deviated.breakout_pressure)
+        assert deviated.breakout_pressure > vertical.breakout_pressure
+        assert deviated_window < vertical_window
+
+    def test_vertical_window_array(self) -> None:
+        windows = WellboreStabilityCalculation.calculate_mud_weight_window_vertical_well_array(
+            shmax=[12000.0, 13000.0], shmin=[10000.0, 11000.0], pprs=[5000.0, 5500.0],
+            overburden_stress=[13000.0, 14000.0], ucs=[5000.0, 5000.0], fang=[30.0, 30.0],
+            pr_sta=[0.25, 0.25], tstr=[750.0, 750.0],
+        )
+        assert len(windows) == 2
+        assert all(isinstance(w, MudWeightWindow) for w in windows)
