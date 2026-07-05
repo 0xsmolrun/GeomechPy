@@ -6,6 +6,7 @@ they can be imported directly from the package, e.g.::
     from geomechpy import ElasticPropertiesConverter, PorePressureCalculation
 """
 
+from geomechpy.dataframe_tools import add_results_to_dataframe, results_to_dataframe
 from geomechpy.dynamic_elastic_properties import DynamicElasticProperties, DynamicElasticPropertiesCalculation
 from geomechpy.elastic_properties import ElasticProperties, ElasticPropertiesConverter
 from geomechpy.fracture_gradient import FractureGradientCalculation
@@ -22,6 +23,7 @@ __version__ = "0.0.1"
 
 __all__ = [
     "BoreholeWallStresses",
+    "add_results_to_dataframe",
     "DynamicElasticProperties",
     "DynamicElasticPropertiesCalculation",
     "ElasticProperties",
@@ -34,6 +36,7 @@ __all__ = [
     "OverburdenStressCalculation",
     "PorePressureCalculation",
     "PrincipalStresses",
+    "results_to_dataframe",
     "RockStrengthPropertiesConverter",
     "StaticElasticPropertiesConverter",
     "UnitConverter",

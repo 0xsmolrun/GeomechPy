@@ -6,7 +6,7 @@ from geomechpy.units import UnitConverter
 
 @dataclass(frozen=True)
 class HorizontalStresses:
-    """Calculation of stress components and properties.
+    """Horizontal stress model per depth with stress regime indicators.
 
     Attributes:
         shmin (float): Minimum horizontal stress magnitude. Unit: Pressure
@@ -140,7 +140,7 @@ class HorizontalStressesCalculation:
 
     @staticmethod
     def calculate_stress_regime_q_factor(sigv: float, shmax: float, shmin: float) -> float:
-        """Calculates q factor representing the stress regime based on the order and relative magnitude of the three principle stresses.
+        """Calculates q factor representing the stress regime based on the order and relative magnitude of the three principal stresses.
             Normal Stress Regime: sigv  > shmax > shmin --> 0 > q < 1
             Strike slip Regime: shmax > sigv  > shmin --> 1 > q < 2
             Reverse Faulting: shmax > shmin > sigv  --> 2 > q < 3

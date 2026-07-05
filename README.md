@@ -22,6 +22,7 @@ Every calculation is available in a single-value form and an `_array` form for d
 - **Near-wellbore stresses** — Kirsch borehole wall stresses for arbitrary well orientation, principal stresses and tortuosity.
 - **Wellbore stability** — breakout and breakdown pressures for vertical wells (analytical) and deviated/inclined wells (numerical), plus the full kick/breakout/loss/breakdown mud weight window.
 - **Fracture gradient** — Hubbert & Willis, Matthews & Kelly, and Eaton estimates.
+- **pandas-friendly** — optional helpers to move results in and out of depth-indexed DataFrames.
 
 ## Installation
 
@@ -30,14 +31,15 @@ GeomechPy is not yet published to PyPI. Install it from source:
 ```bash
 git clone https://github.com/0xsmolrun/GeomechPy.git
 cd GeomechPy
-pip install .
+pip install .            # core library (numpy only)
+pip install .[pandas]    # with the optional pandas DataFrame helpers
 ```
 
 For development (with tests):
 
 ```bash
 pip install -e .
-pip install pytest
+pip install -r requirements.txt
 pytest
 ```
 
@@ -159,6 +161,27 @@ gradient = UnitConverter.convert_pressure_gradient(0.47, "psi/ft", "kPa/m")
 ```
 
 Unit-agnostic calculations (elastic moduli conversions, wellbore stability, near-wellbore stresses) work with any consistent pressure unit and return results in that same unit.
+
+### 5. Depth-indexed data with pandas
+
+```python
+import pandas as pd
+from geomechpy import DynamicElasticPropertiesCalculation, add_results_to_dataframe
+
+logs = pd.DataFrame(
+    {"dtco": [76.2, 80.0, 85.3], "dtsh": [127.0, 135.5, 142.1], "rhob": [2650.0, 2600.0, 2550.0]},
+    index=pd.Index([2500.0, 2510.0, 2520.0], name="tvd"),
+)
+
+# The _array methods take plain lists, so log curves feed in directly...
+results = DynamicElasticPropertiesCalculation.calculate_from_slowness_array(
+    logs["dtco"].tolist(), logs["dtsh"].tolist(), logs["rhob"].tolist(), modulus_unit="GPa"
+)
+
+# ...and the helpers bring the results back as columns next to the logs
+logs = add_results_to_dataframe(logs, results, prefix="dyn_")
+print(logs[["dtco", "dyn_youngs_modulus", "dyn_poissons_ratio", "dyn_vp_vs_ratio"]])
+```
 
 ## Documentation
 

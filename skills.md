@@ -92,6 +92,15 @@ In addition, calculations are unit-flexible: unit-agnostic methods (elastic modu
 | Principal stresses at the wall | `calculate_principal_stresses_analytical` | Includes tortuosity angle |
 | Stress tensor rotations | `toolbox.rotate_stress_to_shmax`, `toolbox.rotate_nev_to_toh` | Principal → NEV → top-of-hole frames |
 
+### DataFrame Tools (`geomechpy.dataframe_tools`)
+
+| Capability | Class / Function | Notes |
+|---|---|---|
+| Results → DataFrame | `results_to_dataframe` | Turn any list of result dataclasses into a DataFrame, optionally indexed by TVD |
+| Append results to logs | `add_results_to_dataframe` | Add result fields as columns next to the input log curves (optional prefix) |
+
+pandas is an optional dependency (`pip install geomechpy[pandas]`); the `_array` methods accept plain `list[float]`, so `df["col"].tolist()` feeds any calculation directly.
+
 ### Wellbore Stability (`geomechpy.wellbore_stability`)
 
 | Capability | Class / Function | Notes |
@@ -128,6 +137,7 @@ In addition, calculations are unit-flexible: unit-agnostic methods (elastic modu
 ## Supported Calculations (Summary)
 
 - **Unit conversions**: pressure/modulus, depth, density, velocity, slowness, pressure gradient (including ppg/SG mud weight units), and mud weight ↔ downhole pressure.
+- **DataFrame tools**: convert result dataclasses to pandas DataFrames and append them to depth-indexed logs.
 - **Elastic moduli conversions**: 15 pairwise conversions between K, E, λ, G, ν and M.
 - **Dynamic moduli from logs**: sonic velocity or slowness plus bulk density to dynamic K, E, λ, G, ν, M and Vp/Vs.
 - **Dynamic → static calibration**: 4 published Young's modulus correlations plus custom power/linear laws.
@@ -149,7 +159,6 @@ Being a young library (v0.0.1), several standard geomechanics workflows are not 
 - **Additional failure criteria** — Mogi-Coulomb, Drucker-Prager, modified Lade.
 - **More rock strength correlations** — sonic- and porosity-based UCS correlations (McNally, Chang et al. compilation).
 - **Thermal and poroelastic time-dependent wellbore effects.**
-- **pandas integration** — helpers to run workflows directly on depth-indexed DataFrames.
 - **Anisotropic rock physics** (TI media, Thomsen parameters).
 
 ---

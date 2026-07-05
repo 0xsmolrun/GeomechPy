@@ -25,7 +25,6 @@ class MudWeightWindow:
     breakdown_pressure: float
 
 
-@dataclass(frozen=True)
 class WellboreStabilityCalculation:
     """Compute the shear failure and tensile failure limits for a vertical well using the Mohr-Coulomb failure criterion using analytical solution
 
@@ -51,13 +50,13 @@ class WellboreStabilityCalculation:
         Hubbert, M. King, and David G. Willis. "Mechanics of hydraulic fracturing." Transactions of the AIME 210.01 (1957): 153-168.
 
         Args:
-           shmin (float): Minimum horizontal stress magnitude Unit [psi].
-           shmax (float): Maximum horizontal stress magnitude Unit [psi].
-           pore_pressure (float): value of pressure calculated for onshore in pressure unit  Unit: Pressure Unit [psi]
-           tstr (float): tensile rock strength
+           shmax (float): Maximum horizontal stress magnitude. Unit: any consistent pressure unit
+           shmin (float): Minimum horizontal stress magnitude. Unit: same pressure unit
+           pprs (float): Pore pressure. Unit: same pressure unit
+           tstr (float): Tensile rock strength. Unit: same pressure unit
 
         Returns:
-           pw_breakdown (float):  Unit: psi
+           pw_breakdown (float): Breakdown (fracture initiation) pressure. Unit: same pressure unit as the inputs
         """
 
         pw_breakdown = 3 * shmin - shmax - pprs + tstr
@@ -80,16 +79,16 @@ class WellboreStabilityCalculation:
         Al-Ajmi, Adel M., and Robert W. Zimmerman. "Stability analysis of vertical boreholes using the Mogi-Coulomb failure criterion." International journal of rock mechanics and mining sciences 43.8 (2006): 1200-1211.
 
         Args:
-           shmin (float): Minimum horizontal stress magnitude Unit [psi].
-           shmax (float): Maximum horizontal stress magnitude Unit [psi].
-           pore_pressure (float): value of pressure in pressure unit  Unit: Pressure Unit [psi]
-           overburden_stress: value of overburden stress in pressure unit  Unit: Pressure Unit [psi]
-           ucs: Unconfined compressive strength (UCS) Unit: [psi]
-           fang (float): Angle of internal friction angle  Unit: [dega]
-           pr_sta (float): Static Poisson's ratio Unit: [unitless]
+           shmax (float): Maximum horizontal stress magnitude. Unit: any consistent pressure unit
+           shmin (float): Minimum horizontal stress magnitude. Unit: same pressure unit
+           pprs (float): Pore pressure. Unit: same pressure unit
+           overburden_stress (float): Overburden (vertical) stress magnitude. Unit: same pressure unit
+           ucs (float): Unconfined compressive strength. Unit: same pressure unit
+           fang (float): Internal friction angle. Unit: [dega]
+           pr_sta (float): Static Poisson's ratio. Unit: unitless
 
         Returns:
-           pw_breakout (float):  Unit: psi
+           pw_breakout (float): Breakout (shear failure) pressure. Unit: same pressure unit as the inputs
         """
         q = math.tan(math.radians(45) + math.radians(fang / 2)) ** 2
         CC = ucs - pprs * (q - 1)
@@ -111,13 +110,13 @@ class WellboreStabilityCalculation:
         Calculate the breakdown pressure for a vertical well across arrays of inputs.
 
         Args:
-           shmax (list[float]): Maximum horizontal stress values Unit [psi].
-           shmin (list[float]): Minimum horizontal stress values Unit [psi].
-           pprs (list[float]): Pore pressure values Unit: Pressure Unit [psi]
-           tstr (list[float]): Tensile rock strength values Unit [psi]
+           shmax (list[float]): Maximum horizontal stress values. Unit: any consistent pressure unit
+           shmin (list[float]): Minimum horizontal stress values. Unit: same pressure unit
+           pprs (list[float]): Pore pressure values. Unit: same pressure unit
+           tstr (list[float]): Tensile rock strength values. Unit: same pressure unit
 
         Returns:
-           pw_breakdown (list[float]): Breakdown pressure values. Unit: psi
+           pw_breakdown (list[float]): Breakdown pressure values. Unit: same pressure unit as the inputs
         """
         return [
             WellboreStabilityCalculation.calculate_breakdown_calculation_vertical_well_analytical(
@@ -135,16 +134,16 @@ class WellboreStabilityCalculation:
         Calculate the breakout pressure for a vertical well across arrays of inputs using the Mohr-Coulomb failure criterion.
 
         Args:
-           shmax (list[float]): Maximum horizontal stress values Unit [psi].
-           shmin (list[float]): Minimum horizontal stress values Unit [psi].
-           pprs (list[float]): Pore pressure values Unit: Pressure Unit [psi]
-           overburden_stress (list[float]): Overburden stress values Unit: Pressure Unit [psi]
-           ucs (list[float]): Unconfined compressive strength values Unit: [psi]
-           fang (list[float]): Internal friction angle values Unit: [dega]
-           pr_sta (list[float]): Static Poisson's ratio values Unit: [unitless]
+           shmax (list[float]): Maximum horizontal stress values. Unit: any consistent pressure unit
+           shmin (list[float]): Minimum horizontal stress values. Unit: same pressure unit
+           pprs (list[float]): Pore pressure values. Unit: same pressure unit
+           overburden_stress (list[float]): Overburden stress values. Unit: same pressure unit
+           ucs (list[float]): Unconfined compressive strength values. Unit: same pressure unit
+           fang (list[float]): Internal friction angle values. Unit: [dega]
+           pr_sta (list[float]): Static Poisson's ratio values. Unit: unitless
 
         Returns:
-           pw_breakout (list[float]): Breakout pressure values. Unit: psi
+           pw_breakout (list[float]): Breakout pressure values. Unit: same pressure unit as the inputs
         """
         return [
             WellboreStabilityCalculation.calculate_breakout_calculation_vertical_well_mohr_coulomb_analytical(
