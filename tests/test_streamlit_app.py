@@ -46,3 +46,47 @@ class TestMemDashboard:
         app.run()
         assert not app.exception
         assert app.metric[0].value != baseline  # window at TD moved with the gradient
+
+
+DASHBOARD_PATH = "examples/streamlit_apps/geomechpy_dashboard.py"
+
+
+def _run_dashboard() -> AppTest:
+    app = AppTest.from_file(DASHBOARD_PATH, default_timeout=180)
+    app.run()
+    return app
+
+
+class TestGeomechpyDashboard:
+    def test_runs_without_exceptions(self) -> None:
+        app = _run_dashboard()
+        assert not app.exception
+        assert len(app.tabs) == 4
+        assert app.session_state["results"] is not None  # results stored per spec
+
+    def test_poroelastic_method_branch(self) -> None:
+        app = _run_dashboard()
+        app.sidebar.radio[0].set_value("Poroelastic")
+        app.run()
+        assert not app.exception
+
+    def test_metric_unit_system(self) -> None:
+        app = _run_dashboard()
+        app.sidebar.selectbox[0].select("Metric (m, MPa, SG)")
+        app.run()
+        assert not app.exception
+        assert any("MPa" in metric.value for metric in app.metric)
+
+    def test_load_example_button(self) -> None:
+        app = _run_dashboard()
+        app.sidebar.button[0].click()
+        app.run()
+        assert not app.exception
+
+    def test_pore_pressure_slider_updates_metrics(self) -> None:
+        app = _run_dashboard()
+        baseline = app.metric[0].value
+        app.sidebar.slider[0].set_value(12.0)
+        app.run()
+        assert not app.exception
+        assert app.metric[0].value != baseline

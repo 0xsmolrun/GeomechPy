@@ -246,11 +246,11 @@ Two fully executed notebooks live in [`examples/`](./examples):
 - [`01_basic_calculations.ipynb`](./examples/01_basic_calculations.ipynb) — every core calculation step by step: elastic properties, static calibration, rock strength, pore pressure/overburden, horizontal stresses, vertical and deviated wellbore stability, and unit handling.
 - [`02_full_mem_workflow.ipynb`](./examples/02_full_mem_workflow.ipynb) — a complete 1D Mechanical Earth Model built from synthetic well logs: log data → dynamic/static properties → strength → stresses → mud weight window, finished with the standard MEM displays.
 
-And an interactive **Streamlit dashboard** in [`examples/streamlit_apps/`](./examples/streamlit_apps): the full MEM chain with live parameter sensitivity (pore pressure gradient, Shmin method, Biot, tectonic strains, mud plan, well deviation), interactive Plotly charts, and CSV export:
+And two interactive **Streamlit dashboards** in [`examples/streamlit_apps/`](./examples/streamlit_apps) — `geomechpy_dashboard.py` (built on `MechanicalEarthModel` and the plotly plotting backend, with a field/metric unit selector) and the more detailed `geomechpy_mem_dashboard.py` — offering the full MEM chain with live parameter sensitivity (pore pressure gradient, Shmin method, Biot, tectonic strains, mud plan, well deviation), interactive Plotly charts, and CSV export:
 
 ```bash
 pip install -e ".[streamlit,plotly]"
-streamlit run examples/streamlit_apps/geomechpy_mem_dashboard.py
+streamlit run examples/streamlit_apps/geomechpy_dashboard.py
 ```
 
 ## Documentation
