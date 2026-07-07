@@ -130,7 +130,7 @@ pandas is an optional dependency (`pip install geomechpy[pandas]`); the `_array`
 | Stress polygon | `plot_stress_polygon` | Zoback frictional-limit polygon with NF/SS/RF regions and the current stress state |
 | Elastic property log | `plot_elastic_properties` | Young's modulus (dynamic + optional static overlay), Poisson's ratio, Vp/Vs vs depth |
 
-matplotlib is an optional dependency (`pip install geomechpy[plotting]`). Every function returns the `Figure` for further customization or saving; depth axes are drawn increasing downwards.
+matplotlib is an optional dependency (`pip install geomechpy[plotting]`); every function also accepts `backend="plotly"` (`pip install geomechpy[plotly]`) to return an interactive Plotly figure with the same content. Every function returns the `Figure` for further customization or saving; depth axes are drawn increasing downwards.
 
 ### Fracture Gradient (`geomechpy.fracture_gradient`)
 
@@ -146,6 +146,7 @@ matplotlib is an optional dependency (`pip install geomechpy[plotting]`). Every 
 
 - **Complete pairwise elastic moduli conversion** — any two known moduli can be converted into the full set.
 - **Scalar and array APIs** — every calculation has a single-value form and an `_array` form (`list[float]` in, `list` out) for depth-indexed logs.
+- **Input validation** — non-physical inputs (negative depths/densities, Poisson's ratio ≥ 0.5, friction angle ≥ 90°, Vp/Vs implying negative bulk modulus, ...) raise descriptive `ValueError`s instead of returning nonsense.
 - **Immutable result objects** — multi-valued results are returned as frozen dataclasses (`ElasticProperties`, `HorizontalStresses`, `BoreholeWallStresses`, ...).
 - **Literature-backed** — methods cite their sources (Zhang 2019, Jaeger, Cook & Zimmerman 2009, Fjaer et al. 2008, SPE papers) directly in docstrings, and key methods carry runnable `>>>` examples verified by doctests.
 - **Explicit units** — every docstring states the expected input and output units.

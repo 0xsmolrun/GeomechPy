@@ -141,3 +141,62 @@ class TestPlotElasticProperties:
         dynamic = DynamicElasticPropertiesCalculation.calculate_from_slowness_array([85.0], [150.0], [2500.0])
         with pytest.raises(ValueError, match="same length"):
             plot_elastic_properties(TVD, dynamic)
+
+
+class TestPlotlyBackend:
+    def test_mud_weight_window_plotly(self) -> None:
+        plotly = pytest.importorskip("plotly")
+        figure = plot_mud_weight_window(TVD, _windows(), as_mud_weight=True, backend="plotly",
+                                        mud_pressure=[4200.0, 4700.0, 5200.0])
+        import plotly.graph_objects as go
+        assert isinstance(figure, go.Figure)
+        names = [trace.name for trace in figure.data]
+        assert "Safe window" in names
+        assert "Breakdown" in names
+        assert "Mud pressure" in names
+        assert figure.layout.yaxis.autorange == "reversed"
+
+    def test_mem_profile_plotly(self) -> None:
+        pytest.importorskip("plotly")
+        import plotly.graph_objects as go
+        figure = plot_mem_profile(
+            TVD,
+            tracks={"Pressures": {"Pp": [1.0, 2.0, 3.0]}, "Strength": {"UCS": [4.0, 5.0, 6.0]}},
+            track_units={"Pressures": "psi"},
+            backend="plotly",
+        )
+        assert isinstance(figure, go.Figure)
+        assert len(figure.data) == 2
+        subplot_titles = [annotation.text for annotation in figure.layout.annotations]
+        assert "Pressures [psi]" in subplot_titles
+
+    def test_stress_polygon_plotly_geometry(self) -> None:
+        pytest.importorskip("plotly")
+        import math
+        mu, sv, pp = 0.6, 10000.0, 4500.0
+        q = (math.sqrt(mu**2 + 1) + mu) ** 2
+        figure = plot_stress_polygon(shmin=8000.0, shmax=9000.0, overburden_stress=sv,
+                                     pore_pressure=pp, friction_coefficient=mu, backend="plotly")
+        polygon = figure.data[0]
+        assert min(polygon.x) == pytest.approx((sv - pp) / q + pp, rel=1e-9)
+        assert max(polygon.y) == pytest.approx(q * (sv - pp) + pp, rel=1e-9)
+
+    def test_elastic_properties_plotly_passthrough(self) -> None:
+        pytest.importorskip("plotly")
+        import plotly.graph_objects as go
+        dynamic = DynamicElasticPropertiesCalculation.calculate_from_slowness_array(
+            [85.0, 80.0, 76.0], [150.0, 140.0, 132.0], [2500.0, 2550.0, 2600.0], modulus_unit="GPa"
+        )
+        figure = plot_elastic_properties(TVD, dynamic, modulus_unit="GPa", backend="plotly")
+        assert isinstance(figure, go.Figure)
+
+    def test_unknown_backend_raises(self) -> None:
+        with pytest.raises(ValueError, match="Unsupported backend"):
+            plot_mud_weight_window(TVD, _windows(), backend="bokeh")
+
+    def test_ax_with_plotly_raises(self) -> None:
+        pytest.importorskip("plotly")
+        _, ax = plt.subplots()
+        with pytest.raises(ValueError, match="only applies to the matplotlib backend"):
+            plot_mud_weight_window(TVD, _windows(), ax=ax, backend="plotly")
+        plt.close("all")

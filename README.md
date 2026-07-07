@@ -23,7 +23,7 @@ Every calculation is available in a single-value form and an `_array` form for d
 - **Wellbore stability** — breakout and breakdown pressures for vertical wells (analytical) and deviated/inclined wells (numerical), plus the full kick/breakout/loss/breakdown mud weight window.
 - **Fracture gradient** — Hubbert & Willis, Matthews & Kelly, and Eaton estimates.
 - **pandas-friendly** — optional helpers to move results in and out of depth-indexed DataFrames.
-- **Plotting** — mud weight window, multi-track MEM profiles, stress polygon and elastic property logs (matplotlib, optional).
+- **Plotting** — mud weight window, multi-track MEM profiles, stress polygon and elastic property logs; matplotlib by default, `backend="plotly"` for interactive figures (both optional).
 
 ## Installation
 
@@ -212,6 +212,10 @@ figure = plot_mem_profile(
 
 # Where does the stress state sit relative to the faulting regimes?
 figure = plot_stress_polygon(shmin=8000, shmax=9000, overburden_stress=10000, pore_pressure=4500)
+
+# Any plot can be made interactive (hover, zoom, legend toggling) with plotly
+figure = plot_mud_weight_window(tvd, windows, as_mud_weight=True, backend="plotly")
+figure.write_html("mud_weight_window.html")
 ```
 
 ### 6. Depth-indexed data with pandas

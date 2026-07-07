@@ -53,6 +53,8 @@ class HorizontalStressesCalculation:
             shmax (float): Maximum horizontal stress magnitude Unit [pressure_unit].
             q_factor (float): Stress Regime Indicator. Unit [unitless].
             shmax_shmin_ratio (float): Stress ratio. Unit [unitless]."""
+        if not 0.0 <= poisson_ratio < 0.5:
+            raise ValueError(f"poisson_ratio must be in [0, 0.5), got {poisson_ratio}")
         overburden_stress = UnitConverter.convert_pressure(overburden_stress, pressure_unit, "psi")
         pore_pressure = UnitConverter.convert_pressure(pore_pressure, pressure_unit, "psi")
         youngs_modulus = UnitConverter.convert_pressure(youngs_modulus, modulus_unit, "psi")
@@ -97,6 +99,8 @@ class HorizontalStressesCalculation:
             >>> round(HorizontalStressesCalculation.calculate_shmin_eaton(
             ...     overburden_stress=10000.0, pore_pressure=4700.0, poisson_ratio=0.25), 2)
             6466.67"""
+        if not 0.0 <= poisson_ratio < 0.5:
+            raise ValueError(f"poisson_ratio must be in [0, 0.5), got {poisson_ratio}")
         effective_stress_ratio = poisson_ratio / (1 - poisson_ratio)
         shmin = effective_stress_ratio * (overburden_stress - biot_coefficient * pore_pressure) + biot_coefficient * pore_pressure + tectonic_stress
 
@@ -130,6 +134,8 @@ class HorizontalStressesCalculation:
             >>> HorizontalStressesCalculation.calculate_shmin_effective_stress_ratio(
             ...     overburden_stress=10000.0, pore_pressure=4700.0, effective_stress_ratio=0.8)
             8940.0"""
+        if effective_stress_ratio <= 0:
+            raise ValueError(f"effective_stress_ratio must be positive, got {effective_stress_ratio}")
         shmin = effective_stress_ratio * (overburden_stress - biot_coefficient * pore_pressure) + biot_coefficient * pore_pressure + tectonic_stress
 
         return float(shmin)

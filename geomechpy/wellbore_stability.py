@@ -101,6 +101,8 @@ class WellboreStabilityCalculation:
            ...     ucs=5000.0, fang=30.0, pr_sta=0.25), 1)
            7750.0
         """
+        if not 0.0 <= fang < 90.0:
+            raise ValueError(f"friction angle must be in [0, 90) degrees, got {fang}")
         q = math.tan(math.radians(45) + math.radians(fang / 2)) ** 2
         CC = ucs - pprs * (q - 1)
 
@@ -234,6 +236,8 @@ class WellboreStabilityCalculation:
 
         Raises:
            ValueError: If no mud pressure can stabilize the wall (shear failure at every pressure)."""
+        if not 0.0 <= fang < 90.0:
+            raise ValueError(f"friction angle must be in [0, 90) degrees, got {fang}")
         q = math.tan(math.radians(45 + fang / 2)) ** 2
 
         def shear_failure_excess(mud_pressure: float) -> float:
