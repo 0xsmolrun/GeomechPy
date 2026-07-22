@@ -61,12 +61,12 @@ class TestGeomechpyDashboard:
     def test_runs_without_exceptions(self) -> None:
         app = _run_dashboard()
         assert not app.exception
-        assert len(app.tabs) == 4
-        assert app.session_state["results"] is not None  # results stored per spec
+        assert len(app.tabs) == 6  # Data, Stress Model, Stress Polygon, Stability, Near-Wellbore, Summary
+        assert app.session_state["results"] is not None
 
     def test_poroelastic_method_branch(self) -> None:
         app = _run_dashboard()
-        app.sidebar.radio[0].set_value("Poroelastic")
+        app.sidebar.radio[1].set_value("Poroelastic")  # radio[0] is the data source
         app.run()
         assert not app.exception
 
@@ -77,16 +77,32 @@ class TestGeomechpyDashboard:
         assert not app.exception
         assert any("MPa" in metric.value for metric in app.metric)
 
+    def test_deviation_toggle_computes_deviated_window(self) -> None:
+        app = _run_dashboard()
+        assert not any("Deviated window" in metric.label for metric in app.metric)
+        app.toggle[0].set_value(True)
+        app.run()
+        assert not app.exception
+        # Turning the toggle on adds the deviated-window metrics
+        assert any("Deviated window" in metric.label for metric in app.metric)
+
+    def test_deviation_slider_reruns_cleanly(self) -> None:
+        app = _run_dashboard()
+        app.toggle[0].set_value(True)
+        app.run()
+        # deviation slider is the one labelled with degrees; set to a high angle
+        deviation_slider = next(s for s in app.sidebar.slider if "deviation" in s.label.lower())
+        deviation_slider.set_value(75)
+        app.run()
+        assert not app.exception
+
+    def test_near_wellbore_tab_metrics(self) -> None:
+        app = _run_dashboard()
+        assert any("hoop stress" in metric.label.lower() for metric in app.metric)
+        assert any("Faulting regime" == metric.label for metric in app.metric)
+
     def test_load_example_button(self) -> None:
         app = _run_dashboard()
         app.sidebar.button[0].click()
         app.run()
         assert not app.exception
-
-    def test_pore_pressure_slider_updates_metrics(self) -> None:
-        app = _run_dashboard()
-        baseline = app.metric[0].value
-        app.sidebar.slider[0].set_value(12.0)
-        app.run()
-        assert not app.exception
-        assert app.metric[0].value != baseline

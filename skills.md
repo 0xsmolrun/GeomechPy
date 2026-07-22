@@ -85,6 +85,7 @@ In addition, calculations are unit-flexible: unit-agnostic methods (elastic modu
 | SHmax from multiplier | `calculate_shmax_multiplier` | Simple anisotropy multiplier on Shmin |
 | Stress regime q-factor | `calculate_stress_regime_q_factor` | Normal / strike-slip / reverse indicator (Prats, 1981) |
 | SHmax/Shmin ratio | `calculate_horizontal_stress_ratio` | Anisotropy measure |
+| Faulting regime classification | `classify_stress_regime` | Normal / strike-slip / reverse from Sv, SHmax, Shmin (Anderson) |
 
 ### Rock Strength (`geomechpy.rock_strength`)
 
@@ -129,6 +130,7 @@ pandas is an optional dependency (`pip install geomechpy[pandas]`); the `_array`
 | Multi-track MEM profile | `plot_mem_profile` | Industry-style composite: any number of tracks, each with named curves, shared depth axis |
 | Stress polygon | `plot_stress_polygon` | Zoback frictional-limit polygon with NF/SS/RF regions and the current stress state |
 | Elastic property log | `plot_elastic_properties` | Young's modulus (dynamic + optional static overlay), Poisson's ratio, Vp/Vs vs depth |
+| Near-wellbore wall stresses | `plot_borehole_wall_stresses` | Kirsch hoop/axial/radial vs azimuth around the borehole wall; marks breakout & tensile azimuths |
 
 matplotlib is an optional dependency (`pip install geomechpy[plotting]`); every function also accepts `backend="plotly"` (`pip install geomechpy[plotly]`) to return an interactive Plotly figure with the same content. Every function returns the `Figure` for further customization or saving; depth axes are drawn increasing downwards.
 

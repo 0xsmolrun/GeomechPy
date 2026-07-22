@@ -76,7 +76,7 @@ from geomechpy.units import UnitConverter
 
 # --- pandas & plotting helpers (dependencies imported lazily on call) --------
 from geomechpy.dataframe_tools import add_results_to_dataframe, results_to_dataframe
-from geomechpy.plotting import plot_elastic_properties, plot_mem_profile, plot_mud_weight_window, plot_stress_polygon
+from geomechpy.plotting import plot_borehole_wall_stresses, plot_elastic_properties, plot_mem_profile, plot_mud_weight_window, plot_stress_polygon
 
 # --- Short aliases (the long names remain the canonical ones) ----------------
 DynamicElastic = DynamicElasticPropertiesCalculation
@@ -121,6 +121,7 @@ __all__ = [
     # pandas & plotting helpers
     "add_results_to_dataframe",
     "results_to_dataframe",
+    "plot_borehole_wall_stresses",
     "plot_elastic_properties",
     "plot_mem_profile",
     "plot_mud_weight_window",

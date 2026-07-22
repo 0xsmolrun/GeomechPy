@@ -23,7 +23,7 @@ Every calculation is available in a single-value form and an `_array` form for d
 - **Wellbore stability** — breakout and breakdown pressures for vertical wells (analytical) and deviated/inclined wells (numerical), plus the full kick/breakout/loss/breakdown mud weight window.
 - **Fracture gradient** — Hubbert & Willis, Matthews & Kelly, and Eaton estimates.
 - **pandas-friendly** — optional helpers to move results in and out of depth-indexed DataFrames.
-- **Plotting** — mud weight window, multi-track MEM profiles, stress polygon and elastic property logs; matplotlib by default, `backend="plotly"` for interactive figures (both optional).
+- **Plotting** — mud weight window, multi-track MEM profiles, stress polygon, elastic property logs, and near-wellbore borehole-wall stresses (hoop/axial/radial vs azimuth); matplotlib by default, `backend="plotly"` for interactive figures (both optional).
 
 ## Installation
 
@@ -245,11 +245,12 @@ Two fully executed notebooks live in [`examples/`](./examples):
 
 - [`01_basic_calculations.ipynb`](./examples/01_basic_calculations.ipynb) — every core calculation step by step: elastic properties, static calibration, rock strength, pore pressure/overburden, horizontal stresses, vertical and deviated wellbore stability, and unit handling.
 - [`02_full_mem_workflow.ipynb`](./examples/02_full_mem_workflow.ipynb) — a complete 1D Mechanical Earth Model built from synthetic well logs: log data → dynamic/static properties → strength → stresses → mud weight window, finished with the standard MEM displays.
+- [`03_deviation_and_near_wellbore_stresses.ipynb`](./examples/03_deviation_and_near_wellbore_stresses.ipynb) — how well **trajectory** (deviation & azimuth) reshapes the mud weight window and the near-wellbore (Kirsch) hoop/axial stresses, and how that maps onto LWD borehole-image breakouts and tensile fractures.
 
-And two interactive **Streamlit dashboards** in [`examples/streamlit_apps/`](./examples/streamlit_apps) — `geomechpy_dashboard.py` (built on `MechanicalEarthModel` and the plotly plotting backend, with a field/metric unit selector) and the more detailed `geomechpy_mem_dashboard.py` — offering the full MEM chain with live parameter sensitivity (pore pressure gradient, Shmin method, Biot, tectonic strains, mud plan, well deviation), interactive Plotly charts, and CSV export:
+And two interactive **Streamlit dashboards** in [`examples/streamlit_apps/`](./examples/streamlit_apps) — `geomechpy_dashboard.py` (CSV/LAS upload, a field/metric unit selector, a stress-polygon + faulting-regime tab, a deviation/azimuth toggle for the mud weight window, and a live near-wellbore hoop/axial stress teaching tab) and the detailed `geomechpy_mem_dashboard.py` — offering the full MEM chain with live parameter sensitivity (pore pressure gradient, Shmin method, Biot, tectonic strains, mud plan, well deviation), interactive Plotly charts, and CSV export:
 
 ```bash
-pip install -e ".[streamlit,plotly]"
+pip install -e ".[streamlit,plotly,las]"
 streamlit run examples/streamlit_apps/geomechpy_dashboard.py
 ```
 
