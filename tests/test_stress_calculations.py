@@ -176,3 +176,21 @@ class TestShminEffectiveStressRatio:
             overburden_stress=[10000.0, 12000.0], pore_pressure=[4700.0, 5600.0], effective_stress_ratio=0.8
         )
         assert result == pytest.approx([8940.0, 10720.0], rel=TOLERANCE)
+
+
+class TestClassifyStressRegime:
+    def test_normal_faulting(self) -> None:
+        assert HorizontalStressesCalculation.classify_stress_regime(sigv=10000, shmax=8000, shmin=6000) == "Normal faulting"
+
+    def test_strike_slip_faulting(self) -> None:
+        assert HorizontalStressesCalculation.classify_stress_regime(sigv=8000, shmax=10000, shmin=6000) == "Strike-slip faulting"
+
+    def test_reverse_faulting(self) -> None:
+        assert HorizontalStressesCalculation.classify_stress_regime(sigv=4000, shmax=10000, shmin=6000) == "Reverse faulting"
+
+    def test_boundary_sv_equals_shmax_is_normal(self) -> None:
+        assert HorizontalStressesCalculation.classify_stress_regime(sigv=9000, shmax=9000, shmin=6000) == "Normal faulting"
+
+    def test_unit_agnostic(self) -> None:
+        # Same ordering in MPa yields the same regime
+        assert HorizontalStressesCalculation.classify_stress_regime(sigv=69.0, shmax=55.0, shmin=41.0) == "Normal faulting"

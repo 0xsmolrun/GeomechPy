@@ -6,19 +6,31 @@ Plotly only provide the interface.
 
 ## GeomechPy Dashboard (recommended starting point)
 
-`geomechpy_dashboard.py` — a four-tab dashboard built entirely on the high-level API:
-the physics runs through `MechanicalEarthModel` and every chart comes from
-`geomechpy.plotting` with `backend="plotly"`.
+`geomechpy_dashboard.py` — a six-tab dashboard built entirely on the high-level API:
+the physics runs through `MechanicalEarthModel` and the calculation classes, and every
+chart comes from `geomechpy.plotting` with `backend="plotly"`.
 
-- **Data Input** — synthetic example well (configurable depth range) with table and CSV download.
+- **Data Input** — the synthetic example well **or upload your own CSV / LAS logs**
+  (with automatic column mapping to TVD / DTCO / DTSH / RHOB); table and CSV download.
 - **Stress Model** — Pp / Shmin / SHmax / Sv metrics at TD and the interactive stress profile.
-- **Wellbore Stability** — interactive mud weight window with the recommended
-  whole-section mud weight range and a planned-mud overlay.
+- **Stress Polygon** — the Zoback frictional-limit polygon at a chosen depth with the
+  **faulting-regime identification** (normal / strike-slip / reverse) and q-factor.
+- **Wellbore Stability** — the interactive mud weight window; toggle **borehole
+  deviation & azimuth** on to overlay the deviated-well window and see it narrow or
+  close relative to the vertical one.
+- **Near-Wellbore Stresses** — the Kirsch **hoop / axial / radial** stresses around the
+  borehole wall, driven live by deviation, azimuth and mud-weight sliders, marking where
+  breakouts and drilling-induced tensile fractures initiate (teaching tool; the forward
+  model behind LWD image interpretation).
 - **Summary** — the multi-track MEM overview and full results CSV.
 
-Sidebar: load-example button, **unit system selector (field ft/psi/ppg or metric
-m/MPa/SG)**, pore pressure gradient, Poisson's ratio multiplier, Biot coefficient,
-Eaton vs poroelastic stress method with tectonic strain factor, planned mud weight.
+Sidebar: data source (example / upload), **unit system selector (field ft/psi/ppg or
+metric m/MPa/SG)**, pore pressure gradient, Poisson's ratio multiplier, Biot
+coefficient, Eaton vs poroelastic stress method, **well-trajectory toggle + deviation /
+azimuth / SHmax-azimuth sliders**, planned mud weight.
+
+> The far-field earth stresses (Pp, Sv, Shmin, SHmax) are trajectory-independent — only
+> the near-wellbore response and the mud weight window change with deviation and azimuth.
 
 ## GeomechPy — 1D Mechanical Earth Model Dashboard (advanced)
 
@@ -48,7 +60,7 @@ and SHmax azimuth.
 From the repository root:
 
 ```bash
-pip install -e ".[streamlit,plotly]"
+pip install -e ".[streamlit,plotly,las]"
 streamlit run examples/streamlit_apps/geomechpy_dashboard.py        # start here
 streamlit run examples/streamlit_apps/geomechpy_mem_dashboard.py    # advanced version
 ```

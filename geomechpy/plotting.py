@@ -17,8 +17,14 @@ and/or ``pip install geomechpy[plotly]``."""
 
 import math
 
+import numpy as np
+
 from geomechpy.units import UnitConverter
 from geomechpy.wellbore_stability import MudWeightWindow
+
+HOOP_COLOR = "#d62728"
+AXIAL_COLOR = "#1f77b4"
+RADIAL_COLOR = "#2ca02c"
 
 SAFE_WINDOW_COLOR = "#8fd18f"
 KICK_COLOR = "#1f77b4"
@@ -322,6 +328,74 @@ def plot_elastic_properties(tvd: list[float], elastic_properties: list, static_y
     return plot_mem_profile(tvd, tracks, track_units=track_units, depth_unit=depth_unit, title=title, figsize=figsize, backend=backend)
 
 
+def plot_borehole_wall_stresses(theta, wall_stresses, ucs: float | None = None, tensile_strength: float | None = None, pressure_unit: str = "psi", title: str = "Near-wellbore stresses on the borehole wall", figsize: tuple[float, float] = (9.0, 6.0), ax=None, backend: str = "matplotlib"):
+    """Plot the Kirsch effective stresses around the borehole wall against azimuthal angle.
+
+    Shows the tangential (hoop), axial and radial effective stresses as a function of the
+    azimuthal position theta measured from the top of hole. Compressive shear failure
+    (breakout) initiates where the hoop stress is highest; drilling-induced tensile
+    fractures where it is lowest. The azimuths of maximum and minimum hoop stress are
+    marked, and optional UCS and tensile-strength reference lines indicate the failure
+    thresholds - a classic teaching display of how well trajectory reshapes the
+    near-wellbore stress state.
+
+    Reference: Fjaer, Erling, et al. Petroleum related rock mechanics. Vol. 53. Elsevier, 2008; Chapter 4.
+
+    Args:
+        theta (list[float] | numpy.ndarray): Azimuthal angles around the borehole wall from top of hole. Unit: [deg]
+        wall_stresses (BoreholeWallStresses): Wall stress components from `NearWellboreStressesCalculation.calculate_kirsch_borehole_wall_stresses` (uses sigma_tt, sigma_zz, sigma_rr). Unit: [pressure_unit]
+        ucs (float | None): Optional unconfined compressive strength drawn as the breakout threshold. Unit: [pressure_unit]. Defaults to None
+        tensile_strength (float | None): Optional tensile strength; the tensile-fracture threshold is drawn at -tensile_strength. Unit: [pressure_unit]. Defaults to None
+        pressure_unit (str): Unit used for the stress axis label. Defaults to "psi"
+        title (str): Figure title. Defaults to "Near-wellbore stresses on the borehole wall"
+        figsize (tuple[float, float]): Figure size in inches when a new figure is created. Defaults to (9, 6)
+        ax (matplotlib.axes.Axes | None): Existing axes to draw into (matplotlib backend only). Defaults to None (new figure)
+        backend (str): "matplotlib" (default) or "plotly" for an interactive figure.
+
+    Returns:
+        matplotlib.figure.Figure | plotly.graph_objects.Figure: The figure containing the plot.
+
+    Example:
+        >>> theta = np.linspace(0, 360, 181)
+        >>> wall = NearWellboreStressesCalculation.calculate_kirsch_borehole_wall_stresses(...)
+        >>> figure = plot_borehole_wall_stresses(theta, wall, ucs=5000, tensile_strength=750)"""
+    theta = list(theta)
+    hoop = list(wall_stresses.sigma_tt)
+    axial = list(wall_stresses.sigma_zz)
+    radial = list(wall_stresses.sigma_rr)
+    breakout_theta = theta[int(np.argmax(hoop))]
+    tensile_theta = theta[int(np.argmin(hoop))]
+
+    if _check_backend(backend, ax):
+        return _borehole_wall_stresses_plotly(theta, hoop, axial, radial, breakout_theta, tensile_theta, ucs, tensile_strength, pressure_unit, title, figsize)
+
+    pyplot = _require_matplotlib()
+    if ax is None:
+        figure, ax = pyplot.subplots(figsize=figsize)
+    else:
+        figure = ax.figure
+
+    ax.plot(theta, hoop, color=HOOP_COLOR, label="Hoop (tangential) $\\sigma_{\\theta\\theta}$")
+    ax.plot(theta, axial, color=AXIAL_COLOR, label="Axial $\\sigma_{zz}$")
+    ax.plot(theta, radial, color=RADIAL_COLOR, linestyle="--", label="Radial $\\sigma_{rr}$")
+    ax.axvline(breakout_theta, color=HOOP_COLOR, linestyle=":", alpha=0.7, label=f"Breakout azimuth ({breakout_theta:.0f}°)")
+    ax.axvline(tensile_theta, color="#9467bd", linestyle=":", alpha=0.7, label=f"Tensile azimuth ({tensile_theta:.0f}°)")
+    if ucs is not None:
+        ax.axhline(ucs, color="black", linestyle="-.", alpha=0.6, label=f"UCS ({ucs:.0f})")
+    if tensile_strength is not None:
+        ax.axhline(-tensile_strength, color="gray", linestyle="-.", alpha=0.6, label=f"-Tensile strength ({-tensile_strength:.0f})")
+
+    ax.set_xlabel("Azimuth around borehole wall from top of hole [°]")
+    ax.set_ylabel(f"Effective stress [{pressure_unit}]")
+    ax.set_title(title)
+    ax.set_xlim(theta[0], theta[-1])
+    ax.grid(True, alpha=0.4)
+    ax.legend(loc="best", fontsize=8)
+    figure.tight_layout()
+
+    return figure
+
+
 def _mud_weight_window_plotly(tvd, kick, breakout, loss, breakdown, lower, upper, mud_pressure, quantity_label, unit_label, depth_unit, title, figsize):
     """Interactive Plotly variant of the mud weight window plot."""
     graph_objects, _ = _require_plotly()
@@ -387,4 +461,25 @@ def _stress_polygon_plotly(shmin, shmax, overburden_stress, q, shmin_frictional_
     figure.update_xaxes(title_text=f"Shmin [{pressure_unit}]")
     figure.update_yaxes(title_text=f"SHmax [{pressure_unit}]", scaleanchor="x", scaleratio=1)
     figure.update_layout(title=title, width=int(figsize[0] * 80), height=int(figsize[1] * 80), legend={"orientation": "h", "y": -0.15})
+    return figure
+
+
+def _borehole_wall_stresses_plotly(theta, hoop, axial, radial, breakout_theta, tensile_theta, ucs, tensile_strength, pressure_unit, title, figsize):
+    """Interactive Plotly variant of the near-wellbore borehole wall stress plot."""
+    graph_objects, _ = _require_plotly()
+
+    figure = graph_objects.Figure()
+    figure.add_trace(graph_objects.Scatter(x=theta, y=hoop, name="Hoop (tangential) σθθ", line={"color": HOOP_COLOR}))
+    figure.add_trace(graph_objects.Scatter(x=theta, y=axial, name="Axial σzz", line={"color": AXIAL_COLOR}))
+    figure.add_trace(graph_objects.Scatter(x=theta, y=radial, name="Radial σrr", line={"color": RADIAL_COLOR, "dash": "dash"}))
+    figure.add_vline(x=breakout_theta, line={"color": HOOP_COLOR, "dash": "dot"}, annotation_text=f"breakout {breakout_theta:.0f}°")
+    figure.add_vline(x=tensile_theta, line={"color": "#9467bd", "dash": "dot"}, annotation_text=f"tensile {tensile_theta:.0f}°")
+    if ucs is not None:
+        figure.add_hline(y=ucs, line={"color": "black", "dash": "dashdot"}, annotation_text="UCS")
+    if tensile_strength is not None:
+        figure.add_hline(y=-tensile_strength, line={"color": "gray", "dash": "dashdot"}, annotation_text="-Tensile strength")
+
+    figure.update_xaxes(title_text="Azimuth around borehole wall from top of hole [°]", range=[theta[0], theta[-1]])
+    figure.update_yaxes(title_text=f"Effective stress [{pressure_unit}]")
+    figure.update_layout(title=title, width=int(figsize[0] * 80), height=int(figsize[1] * 80), legend={"orientation": "h", "y": -0.2})
     return figure

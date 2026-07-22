@@ -182,6 +182,37 @@ class HorizontalStressesCalculation:
         return q_factor
 
     @staticmethod
+    def classify_stress_regime(sigv: float, shmax: float, shmin: float) -> str:
+        """Classify the faulting stress regime from the three principal stress magnitudes (Anderson's theory).
+
+        The regime is set by the position of the vertical stress among the three principal
+        stresses: largest -> normal, intermediate -> strike-slip, smallest -> reverse.
+
+        Reference: Anderson, E. M. The dynamics of faulting and dyke formation with applications to Britain. Oliver and Boyd, 1951.
+        Zoback, Mark D. Reservoir geomechanics. Cambridge University Press, 2010; Chapter 5.
+
+        Args:
+            sigv (float): Vertical stress magnitude. Unit: any consistent pressure unit
+            shmax (float): Maximum horizontal stress magnitude. Unit: same pressure unit
+            shmin (float): Minimum horizontal stress magnitude. Unit: same pressure unit
+
+        Returns:
+            str: "Normal faulting" (Sv >= SHmax >= Shmin), "Strike-slip faulting" (SHmax >= Sv >= Shmin) or "Reverse faulting" (SHmax >= Shmin >= Sv).
+
+        Example:
+            >>> HorizontalStressesCalculation.classify_stress_regime(sigv=10000, shmax=8000, shmin=6000)
+            'Normal faulting'
+            >>> HorizontalStressesCalculation.classify_stress_regime(sigv=8000, shmax=10000, shmin=6000)
+            'Strike-slip faulting'
+            >>> HorizontalStressesCalculation.classify_stress_regime(sigv=4000, shmax=10000, shmin=6000)
+            'Reverse faulting'"""
+        if sigv >= shmax:
+            return "Normal faulting"
+        if sigv <= shmin:
+            return "Reverse faulting"
+        return "Strike-slip faulting"
+
+    @staticmethod
     def calculate_horizontal_stress_ratio(shmax: float, shmin: float) -> float:
         """Calculates the ratio between maximum and minimum horizontal stress magnitudes.
 

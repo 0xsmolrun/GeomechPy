@@ -200,3 +200,43 @@ class TestPlotlyBackend:
         with pytest.raises(ValueError, match="only applies to the matplotlib backend"):
             plot_mud_weight_window(TVD, _windows(), ax=ax, backend="plotly")
         plt.close("all")
+
+
+class TestPlotBoreholeWallStresses:
+    def _wall(self, deviation=30.0, azimuth=90.0, mud=5000.0):
+        import numpy as np
+        from geomechpy import NearWellboreStressesCalculation
+        theta = np.linspace(0.0, 360.0, 181)
+        wall = NearWellboreStressesCalculation.calculate_kirsch_borehole_wall_stresses(
+            shmin=8000.0, shmax=9000.0, svert=10000.0, pore_pressure=4500.0, shmax_azimuth=0.0,
+            mud_pressure=mud, theta=theta, poisson_ratio_static=0.25,
+            borehole_deviation=deviation, borehole_azimuth=azimuth,
+        )
+        return theta, wall
+
+    def test_matplotlib_curves_present(self) -> None:
+        from geomechpy.plotting import plot_borehole_wall_stresses
+        theta, wall = self._wall()
+        figure = plot_borehole_wall_stresses(theta, wall, ucs=5000.0, tensile_strength=750.0)
+        ax = figure.axes[0]
+        labels = [line.get_label() for line in ax.get_lines()]
+        assert any("Hoop" in label for label in labels)
+        assert any("Axial" in label for label in labels)
+        assert any("Radial" in label for label in labels)
+        assert ax.get_xlabel().startswith("Azimuth")
+        plt.close(figure)
+
+    def test_plotly_backend(self) -> None:
+        pytest.importorskip("plotly")
+        import plotly.graph_objects as go
+        from geomechpy.plotting import plot_borehole_wall_stresses
+        theta, wall = self._wall()
+        figure = plot_borehole_wall_stresses(theta, wall, ucs=5000.0, tensile_strength=750.0, backend="plotly")
+        assert isinstance(figure, go.Figure)
+        assert len(figure.data) == 3  # hoop, axial, radial
+
+    def test_higher_mud_lowers_hoop_stress(self) -> None:
+        import numpy as np
+        _, wall_low = self._wall(mud=5000.0)
+        _, wall_high = self._wall(mud=7000.0)
+        assert float(np.max(wall_high.sigma_tt)) < float(np.max(wall_low.sigma_tt))

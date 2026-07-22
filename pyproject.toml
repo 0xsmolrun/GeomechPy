@@ -26,10 +26,14 @@ plotting = [
 plotly = [
     "plotly>=5.22",
 ]
+las = [
+    "lasio>=0.31",
+]
 streamlit = [
     "streamlit>=1.40",
     "plotly>=5.22",
     "pandas>=1.5",
+    "lasio>=0.31",
 ]
 
 [tool.poetry.group.dev.dependencies]
