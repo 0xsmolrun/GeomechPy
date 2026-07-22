@@ -14,6 +14,16 @@ All calculations are performed by the geomechpy package; this app only handles t
 user interface and the interactive Plotly charts."""
 
 import math
+import sys
+from pathlib import Path
+
+# Make the geomechpy package importable when this example is launched directly
+# (e.g. on Streamlit Community Cloud, where the script runs from its own
+# directory and the package is not pip-installed). The repository root is three
+# levels up from this file: examples/streamlit_apps/geomechpy_mem_dashboard.py
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
 
 import numpy as np
 import pandas as pd
