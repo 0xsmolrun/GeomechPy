@@ -1,10 +1,8 @@
 import math
-from dataclasses import dataclass
 
 from geomechpy.units import UnitConverter
 
 
-@dataclass(frozen=True)
 class RockStrengthPropertiesConverter:
     """Compute rock strength properties from sonic slownesses, dynamic or static elastic properties
        Rock strength properties are:

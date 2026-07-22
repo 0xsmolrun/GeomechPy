@@ -6,6 +6,16 @@ GeomechPy is a Python library for building **1D geomechanics workflows** (Mechan
 
 ## Current Capabilities
 
+### High-Level Workflow (`geomechpy.mem`)
+
+| Capability | Class / Function | Notes |
+|---|---|---|
+| Full MEM in one call | `MechanicalEarthModel.calculate_all` | Logs in → dynamic/static moduli, strength, Pp, Sv, Shmin/SHmax, mud weight window |
+| Step-by-step chaining | `calculate_elastic_properties()` → ... → `calculate_wellbore_stability()` | Each step delegates to the calculation classes; descriptive errors when called out of order |
+| Export | `to_dataframe()` | Depth-indexed DataFrame of the inputs and every computed curve |
+
+Every calculation class also has a short alias (`PorePressure`, `Overburden`, `HorizontalStress`, `FractureGradient`, `RockStrength`, `WellboreStability`, `NearWellboreStresses`, `DynamicElastic`, `StaticElastic`, `ElasticConverter`, `Units`); the long names remain canonical.
+
 ### Units (`geomechpy.units`)
 
 | Capability | Class / Function | Notes |
@@ -92,6 +102,15 @@ In addition, calculations are unit-flexible: unit-agnostic methods (elastic modu
 | Principal stresses at the wall | `calculate_principal_stresses_analytical` | Includes tortuosity angle |
 | Stress tensor rotations | `toolbox.rotate_stress_to_shmax`, `toolbox.rotate_nev_to_toh` | Principal → NEV → top-of-hole frames |
 
+### DataFrame Tools (`geomechpy.dataframe_tools`)
+
+| Capability | Class / Function | Notes |
+|---|---|---|
+| Results → DataFrame | `results_to_dataframe` | Turn any list of result dataclasses into a DataFrame, optionally indexed by TVD |
+| Append results to logs | `add_results_to_dataframe` | Add result fields as columns next to the input log curves (optional prefix) |
+
+pandas is an optional dependency (`pip install geomechpy[pandas]`); the `_array` methods accept plain `list[float]`, so `df["col"].tolist()` feeds any calculation directly.
+
 ### Wellbore Stability (`geomechpy.wellbore_stability`)
 
 | Capability | Class / Function | Notes |
@@ -101,6 +120,17 @@ In addition, calculations are unit-flexible: unit-agnostic methods (elastic modu
 | Breakout pressure (deviated/inclined well) | `calculate_breakout_pressure_deviated_well_mohr_coulomb` | Numerical Mohr-Coulomb on the borehole wall for any well trajectory |
 | Breakdown pressure (deviated/inclined well) | `calculate_breakdown_pressure_deviated_well` | Numerical tensile failure limit for any well trajectory |
 | Full mud weight window | `calculate_mud_weight_window_vertical_well`, `calculate_mud_weight_window_deviated_well` | Kick / breakout / loss / breakdown limits in one `MudWeightWindow` result |
+
+### Plotting (`geomechpy.plotting`)
+
+| Capability | Class / Function | Notes |
+|---|---|---|
+| Mud weight window plot | `plot_mud_weight_window` | Kick/breakout/loss/breakdown vs depth, safe window shaded, pressure or EMW axis, optional mud plan overlay |
+| Multi-track MEM profile | `plot_mem_profile` | Industry-style composite: any number of tracks, each with named curves, shared depth axis |
+| Stress polygon | `plot_stress_polygon` | Zoback frictional-limit polygon with NF/SS/RF regions and the current stress state |
+| Elastic property log | `plot_elastic_properties` | Young's modulus (dynamic + optional static overlay), Poisson's ratio, Vp/Vs vs depth |
+
+matplotlib is an optional dependency (`pip install geomechpy[plotting]`); every function also accepts `backend="plotly"` (`pip install geomechpy[plotly]`) to return an interactive Plotly figure with the same content. Every function returns the `Figure` for further customization or saving; depth axes are drawn increasing downwards.
 
 ### Fracture Gradient (`geomechpy.fracture_gradient`)
 
@@ -116,8 +146,9 @@ In addition, calculations are unit-flexible: unit-agnostic methods (elastic modu
 
 - **Complete pairwise elastic moduli conversion** — any two known moduli can be converted into the full set.
 - **Scalar and array APIs** — every calculation has a single-value form and an `_array` form (`list[float]` in, `list` out) for depth-indexed logs.
+- **Input validation** — non-physical inputs (negative depths/densities, Poisson's ratio ≥ 0.5, friction angle ≥ 90°, Vp/Vs implying negative bulk modulus, ...) raise descriptive `ValueError`s instead of returning nonsense.
 - **Immutable result objects** — multi-valued results are returned as frozen dataclasses (`ElasticProperties`, `HorizontalStresses`, `BoreholeWallStresses`, ...).
-- **Literature-backed** — methods cite their sources (Zhang 2019, Jaeger, Cook & Zimmerman 2009, Fjaer et al. 2008, SPE papers) directly in docstrings.
+- **Literature-backed** — methods cite their sources (Zhang 2019, Jaeger, Cook & Zimmerman 2009, Fjaer et al. 2008, SPE papers) directly in docstrings, and key methods carry runnable `>>>` examples verified by doctests.
 - **Explicit units** — every docstring states the expected input and output units.
 - **Unit flexibility** — a built-in `UnitConverter` plus optional unit arguments on unit-bound calculations (field or SI units, mud weight units, arbitrary gradient combinations).
 - **Arbitrary borehole orientation** for near-wellbore stress analysis via full stress tensor rotation.
@@ -127,7 +158,10 @@ In addition, calculations are unit-flexible: unit-agnostic methods (elastic modu
 
 ## Supported Calculations (Summary)
 
+- **High-level workflow**: the `MechanicalEarthModel` class chains the full log-to-mud-window pipeline.
 - **Unit conversions**: pressure/modulus, depth, density, velocity, slowness, pressure gradient (including ppg/SG mud weight units), and mud weight ↔ downhole pressure.
+- **DataFrame tools**: convert result dataclasses to pandas DataFrames and append them to depth-indexed logs.
+- **Plotting**: mud weight window, multi-track MEM profile, stress polygon and elastic property logs (matplotlib).
 - **Elastic moduli conversions**: 15 pairwise conversions between K, E, λ, G, ν and M.
 - **Dynamic moduli from logs**: sonic velocity or slowness plus bulk density to dynamic K, E, λ, G, ν, M and Vp/Vs.
 - **Dynamic → static calibration**: 4 published Young's modulus correlations plus custom power/linear laws.
@@ -149,7 +183,6 @@ Being a young library (v0.0.1), several standard geomechanics workflows are not 
 - **Additional failure criteria** — Mogi-Coulomb, Drucker-Prager, modified Lade.
 - **More rock strength correlations** — sonic- and porosity-based UCS correlations (McNally, Chang et al. compilation).
 - **Thermal and poroelastic time-dependent wellbore effects.**
-- **pandas integration** — helpers to run workflows directly on depth-indexed DataFrames.
 - **Anisotropic rock physics** (TI media, Thomsen parameters).
 
 ---
@@ -161,4 +194,4 @@ Being a young library (v0.0.1), several standard geomechanics workflows are not 
 - **Mud weight design**: estimating breakout and breakdown pressure limits for vertical wells.
 - **Log-based rock property estimation**: dynamic moduli from sonic logs, static calibration against core, strength correlations.
 - **Near-wellbore stress analysis** for arbitrary well trajectories (input to image-log breakout interpretation and sanding studies).
-- **Teaching and prototyping**: transparent, literature-referenced implementations that are easy to inspect and validate.
+- **Teaching and prototyping**: transparent, literature-referenced implementations that are easy to inspect and validate — see the executed notebooks and the interactive Streamlit MEM dashboard in `examples/`.

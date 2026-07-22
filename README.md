@@ -22,6 +22,8 @@ Every calculation is available in a single-value form and an `_array` form for d
 - **Near-wellbore stresses** — Kirsch borehole wall stresses for arbitrary well orientation, principal stresses and tortuosity.
 - **Wellbore stability** — breakout and breakdown pressures for vertical wells (analytical) and deviated/inclined wells (numerical), plus the full kick/breakout/loss/breakdown mud weight window.
 - **Fracture gradient** — Hubbert & Willis, Matthews & Kelly, and Eaton estimates.
+- **pandas-friendly** — optional helpers to move results in and out of depth-indexed DataFrames.
+- **Plotting** — mud weight window, multi-track MEM profiles, stress polygon and elastic property logs; matplotlib by default, `backend="plotly"` for interactive figures (both optional).
 
 ## Installation
 
@@ -30,20 +32,49 @@ GeomechPy is not yet published to PyPI. Install it from source:
 ```bash
 git clone https://github.com/0xsmolrun/GeomechPy.git
 cd GeomechPy
-pip install .
+pip install .                     # core library (numpy only)
+pip install .[pandas,plotting]    # with the optional pandas helpers and matplotlib plots
 ```
 
 For development (with tests):
 
 ```bash
 pip install -e .
-pip install pytest
+pip install -r requirements.txt
 pytest
 ```
 
 Requires Python 3.10+.
 
 ## Quick Start
+
+### The 60-second Mechanical Earth Model
+
+The high-level `MechanicalEarthModel` runs the whole chain — dynamic moduli, static
+calibration, rock strength, pore pressure, density-integrated overburden, horizontal
+stresses and the mud weight window — in one call:
+
+```python
+from geomechpy import MechanicalEarthModel
+
+mem = MechanicalEarthModel(
+    tvd=[8000.0, 9000.0, 10000.0],       # ft
+    dtco=[85.0, 80.0, 76.0],             # us/ft
+    dtsh=[150.0, 140.0, 132.0],          # us/ft
+    rhob=[2500.0, 2550.0, 2600.0],       # kg/m3
+)
+mem.calculate_all(pore_pressure_gradient=9.0, gradient_unit="ppg")
+
+mem.mud_weight_window[-1]     # kick / breakout / loss / breakdown at TD
+mem.results["emw_lower"]      # safe window lower bound in ppg, per depth
+df = mem.to_dataframe()       # everything as a depth-indexed DataFrame
+```
+
+Each step is also available individually and chainable
+(`mem.calculate_elastic_properties(calibration="bradford").calculate_rock_strength()...`),
+and every step delegates to the calculation classes below, which remain the
+fine-grained API. Short aliases exist for all of them
+(`PorePressure`, `Overburden`, `HorizontalStress`, `WellboreStability`, `Units`, ...).
 
 ### 1. Dynamic elastic properties from sonic logs
 
@@ -159,6 +190,68 @@ gradient = UnitConverter.convert_pressure_gradient(0.47, "psi/ft", "kPa/m")
 ```
 
 Unit-agnostic calculations (elastic moduli conversions, wellbore stability, near-wellbore stresses) work with any consistent pressure unit and return results in that same unit.
+
+### 5. Visualization
+
+```python
+from geomechpy import plot_mud_weight_window, plot_mem_profile, plot_stress_polygon
+
+# The classic mud weight window in equivalent mud weight, safe window shaded
+figure = plot_mud_weight_window(tvd, windows, as_mud_weight=True, mud_weight_unit="ppg")
+figure.savefig("mud_weight_window.png", dpi=200)
+
+# Industry-style multi-track MEM composite
+figure = plot_mem_profile(
+    tvd,
+    tracks={
+        "Pressures & Stresses": {"Pp": pore_pressure, "Shmin": shmin, "Sv": overburden},
+        "Rock Strength": {"UCS": ucs},
+    },
+    track_units={"Pressures & Stresses": "psi", "Rock Strength": "psi"},
+)
+
+# Where does the stress state sit relative to the faulting regimes?
+figure = plot_stress_polygon(shmin=8000, shmax=9000, overburden_stress=10000, pore_pressure=4500)
+
+# Any plot can be made interactive (hover, zoom, legend toggling) with plotly
+figure = plot_mud_weight_window(tvd, windows, as_mud_weight=True, backend="plotly")
+figure.write_html("mud_weight_window.html")
+```
+
+### 6. Depth-indexed data with pandas
+
+```python
+import pandas as pd
+from geomechpy import DynamicElasticPropertiesCalculation, add_results_to_dataframe
+
+logs = pd.DataFrame(
+    {"dtco": [76.2, 80.0, 85.3], "dtsh": [127.0, 135.5, 142.1], "rhob": [2650.0, 2600.0, 2550.0]},
+    index=pd.Index([2500.0, 2510.0, 2520.0], name="tvd"),
+)
+
+# The _array methods take plain lists, so log curves feed in directly...
+results = DynamicElasticPropertiesCalculation.calculate_from_slowness_array(
+    logs["dtco"].tolist(), logs["dtsh"].tolist(), logs["rhob"].tolist(), modulus_unit="GPa"
+)
+
+# ...and the helpers bring the results back as columns next to the logs
+logs = add_results_to_dataframe(logs, results, prefix="dyn_")
+print(logs[["dtco", "dyn_youngs_modulus", "dyn_poissons_ratio", "dyn_vp_vs_ratio"]])
+```
+
+## Examples
+
+Two fully executed notebooks live in [`examples/`](./examples):
+
+- [`01_basic_calculations.ipynb`](./examples/01_basic_calculations.ipynb) — every core calculation step by step: elastic properties, static calibration, rock strength, pore pressure/overburden, horizontal stresses, vertical and deviated wellbore stability, and unit handling.
+- [`02_full_mem_workflow.ipynb`](./examples/02_full_mem_workflow.ipynb) — a complete 1D Mechanical Earth Model built from synthetic well logs: log data → dynamic/static properties → strength → stresses → mud weight window, finished with the standard MEM displays.
+
+And two interactive **Streamlit dashboards** in [`examples/streamlit_apps/`](./examples/streamlit_apps) — `geomechpy_dashboard.py` (built on `MechanicalEarthModel` and the plotly plotting backend, with a field/metric unit selector) and the more detailed `geomechpy_mem_dashboard.py` — offering the full MEM chain with live parameter sensitivity (pore pressure gradient, Shmin method, Biot, tectonic strains, mud plan, well deviation), interactive Plotly charts, and CSV export:
+
+```bash
+pip install -e ".[streamlit,plotly]"
+streamlit run examples/streamlit_apps/geomechpy_dashboard.py
+```
 
 ## Documentation
 

@@ -115,7 +115,11 @@ class UnitConverter:
             to_unit (str): Target pressure unit.
 
         Returns:
-            float: Pressure magnitude. Unit: to_unit"""
+            float: Pressure magnitude. Unit: to_unit
+
+        Example:
+            >>> round(UnitConverter.convert_pressure(1.0, "Mpsi", "GPa"), 4)
+            6.8948"""
         return value * UnitConverter._factor(_PRESSURE_FACTORS, from_unit, "pressure") / UnitConverter._factor(_PRESSURE_FACTORS, to_unit, "pressure")
 
     @staticmethod
@@ -141,7 +145,11 @@ class UnitConverter:
             to_unit (str): Target density unit.
 
         Returns:
-            float: Density magnitude. Unit: to_unit"""
+            float: Density magnitude. Unit: to_unit
+
+        Example:
+            >>> round(UnitConverter.convert_density(2.65, "g/cm3", "ppg"), 2)
+            22.12"""
         return value * UnitConverter._factor(_DENSITY_FACTORS, from_unit, "density") / UnitConverter._factor(_DENSITY_FACTORS, to_unit, "density")
 
     @staticmethod
@@ -180,7 +188,11 @@ class UnitConverter:
             to_unit (str): Target gradient unit.
 
         Returns:
-            float: Pressure gradient magnitude. Unit: to_unit"""
+            float: Pressure gradient magnitude. Unit: to_unit
+
+        Example:
+            >>> round(UnitConverter.convert_pressure_gradient(1.0, "ppg", "psi/ft"), 4)
+            0.0519"""
         return value * UnitConverter._pressure_gradient_factor(from_unit) / UnitConverter._pressure_gradient_factor(to_unit)
 
     @staticmethod
@@ -211,7 +223,11 @@ class UnitConverter:
             mud_weight_unit (str): Target equivalent mud weight unit (e.g. "ppg", "SG", "g/cm3"). Defaults to "ppg".
 
         Returns:
-            float: Equivalent mud weight. Unit: mud_weight_unit"""
+            float: Equivalent mud weight. Unit: mud_weight_unit
+
+        Example:
+            >>> round(UnitConverter.convert_pressure_to_mud_weight(5200.0, 10000.0), 2)
+            10.01"""
         pressure_pa = pressure * UnitConverter._factor(_PRESSURE_FACTORS, pressure_unit, "pressure")
         tvd_m = tvd * UnitConverter._factor(_DEPTH_FACTORS, depth_unit, "depth")
         gradient_pa_per_m = pressure_pa / tvd_m
@@ -230,7 +246,11 @@ class UnitConverter:
             depth_unit (str): Depth unit (e.g. "ft", "m"). Defaults to "ft".
 
         Returns:
-            float: Downhole pressure magnitude. Unit: pressure_unit"""
+            float: Downhole pressure magnitude. Unit: pressure_unit
+
+        Example:
+            >>> round(UnitConverter.convert_mud_weight_to_pressure(12.0, 10000.0), 1)
+            6233.8"""
         gradient_pa_per_m = mud_weight * UnitConverter._pressure_gradient_factor(mud_weight_unit)
         tvd_m = tvd * UnitConverter._factor(_DEPTH_FACTORS, depth_unit, "depth")
         pressure_pa = gradient_pa_per_m * tvd_m

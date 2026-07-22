@@ -56,6 +56,8 @@ class DynamicElasticPropertiesCalculation:
 
         Returns:
             velocity (float): Wave velocity. Unit: [velocity_unit]"""
+        if slowness <= 0:
+            raise ValueError(f"slowness must be positive, got {slowness}")
         slowness_s_per_m = UnitConverter.convert_slowness(slowness, slowness_unit, "s/m")
         velocity = 1 / slowness_s_per_m
 
@@ -72,6 +74,8 @@ class DynamicElasticPropertiesCalculation:
 
         Returns:
             slowness (float): Sonic slowness. Unit: [slowness_unit]"""
+        if velocity <= 0:
+            raise ValueError(f"velocity must be positive, got {velocity}")
         velocity_m_per_s = UnitConverter.convert_velocity(velocity, velocity_unit, "m/s")
         slowness = 1 / velocity_m_per_s
 
@@ -90,7 +94,21 @@ class DynamicElasticPropertiesCalculation:
             modulus_unit (str): Unit of the elastic moduli output (e.g. "Pa", "GPa", "Mpsi"). Defaults to "Pa"
 
         Returns:
-            DynamicElasticProperties: Dataclass containing velocities (in velocity_unit), Vp/Vs ratio and dynamic elastic moduli (in modulus_unit). See `DynamicElasticProperties` for details."""
+            DynamicElasticProperties: Dataclass containing velocities (in velocity_unit), Vp/Vs ratio and dynamic elastic moduli (in modulus_unit). See `DynamicElasticProperties` for details.
+
+        Example:
+            >>> props = DynamicElasticPropertiesCalculation.calculate_from_velocity(
+            ...     p_wave_velocity=4000.0, s_wave_velocity=2400.0, density=2650.0, modulus_unit="GPa")
+            >>> print(f"E = {props.youngs_modulus:.2f} GPa, PR = {props.poissons_ratio:.3f}, Vp/Vs = {props.vp_vs_ratio:.2f}")
+            E = 37.21 GPa, PR = 0.219, Vp/Vs = 1.67"""
+        if density <= 0:
+            raise ValueError(f"density must be positive, got {density}")
+        if p_wave_velocity <= 0 or s_wave_velocity <= 0:
+            raise ValueError(f"velocities must be positive, got Vp={p_wave_velocity}, Vs={s_wave_velocity}")
+        if p_wave_velocity / s_wave_velocity <= 2.0 / 3.0**0.5:
+            raise ValueError(
+                f"Vp/Vs = {p_wave_velocity / s_wave_velocity:.3f} is non-physical (must exceed 2/sqrt(3) ~ 1.155, otherwise the bulk modulus would be negative)"
+            )
         p_wave_velocity_si = UnitConverter.convert_velocity(p_wave_velocity, velocity_unit, "m/s")
         s_wave_velocity_si = UnitConverter.convert_velocity(s_wave_velocity, velocity_unit, "m/s")
         density_si = UnitConverter.convert_density(density, density_unit, "kg/m3")
@@ -127,7 +145,13 @@ class DynamicElasticPropertiesCalculation:
             velocity_unit (str): Unit of the velocities reported in the result (e.g. "m/s", "ft/s"). Defaults to "m/s"
 
         Returns:
-            DynamicElasticProperties: Dataclass containing velocities (in velocity_unit), Vp/Vs ratio and dynamic elastic moduli (in modulus_unit). See `DynamicElasticProperties` for details."""
+            DynamicElasticProperties: Dataclass containing velocities (in velocity_unit), Vp/Vs ratio and dynamic elastic moduli (in modulus_unit). See `DynamicElasticProperties` for details.
+
+        Example:
+            >>> props = DynamicElasticPropertiesCalculation.calculate_from_slowness(
+            ...     p_wave_slowness=76.2, s_wave_slowness=127.0, density=2650.0, modulus_unit="GPa")
+            >>> print(f"E = {props.youngs_modulus:.2f} GPa")
+            E = 37.21 GPa"""
         p_wave_velocity = DynamicElasticPropertiesCalculation.convert_slowness_to_velocity(p_wave_slowness, slowness_unit=slowness_unit, velocity_unit=velocity_unit)
         s_wave_velocity = DynamicElasticPropertiesCalculation.convert_slowness_to_velocity(s_wave_slowness, slowness_unit=slowness_unit, velocity_unit=velocity_unit)
 

@@ -6,7 +6,7 @@ from geomechpy.units import UnitConverter
 
 @dataclass(frozen=True)
 class HorizontalStresses:
-    """Calculation of stress components and properties.
+    """Horizontal stress model per depth with stress regime indicators.
 
     Attributes:
         shmin (float): Minimum horizontal stress magnitude. Unit: Pressure
@@ -53,6 +53,8 @@ class HorizontalStressesCalculation:
             shmax (float): Maximum horizontal stress magnitude Unit [pressure_unit].
             q_factor (float): Stress Regime Indicator. Unit [unitless].
             shmax_shmin_ratio (float): Stress ratio. Unit [unitless]."""
+        if not 0.0 <= poisson_ratio < 0.5:
+            raise ValueError(f"poisson_ratio must be in [0, 0.5), got {poisson_ratio}")
         overburden_stress = UnitConverter.convert_pressure(overburden_stress, pressure_unit, "psi")
         pore_pressure = UnitConverter.convert_pressure(pore_pressure, pressure_unit, "psi")
         youngs_modulus = UnitConverter.convert_pressure(youngs_modulus, modulus_unit, "psi")
@@ -91,7 +93,14 @@ class HorizontalStressesCalculation:
             tectonic_stress (float): Optional additive tectonic stress correction. Unit: same pressure unit. Defaults to 0.0
 
         Returns:
-            shmin (float): Minimum horizontal stress magnitude. Unit: same pressure unit as the inputs"""
+            shmin (float): Minimum horizontal stress magnitude. Unit: same pressure unit as the inputs
+
+        Example:
+            >>> round(HorizontalStressesCalculation.calculate_shmin_eaton(
+            ...     overburden_stress=10000.0, pore_pressure=4700.0, poisson_ratio=0.25), 2)
+            6466.67"""
+        if not 0.0 <= poisson_ratio < 0.5:
+            raise ValueError(f"poisson_ratio must be in [0, 0.5), got {poisson_ratio}")
         effective_stress_ratio = poisson_ratio / (1 - poisson_ratio)
         shmin = effective_stress_ratio * (overburden_stress - biot_coefficient * pore_pressure) + biot_coefficient * pore_pressure + tectonic_stress
 
@@ -119,7 +128,14 @@ class HorizontalStressesCalculation:
             tectonic_stress (float): Optional additive tectonic stress correction. Unit: same pressure unit. Defaults to 0.0
 
         Returns:
-            shmin (float): Minimum horizontal stress magnitude. Unit: same pressure unit as the inputs"""
+            shmin (float): Minimum horizontal stress magnitude. Unit: same pressure unit as the inputs
+
+        Example:
+            >>> HorizontalStressesCalculation.calculate_shmin_effective_stress_ratio(
+            ...     overburden_stress=10000.0, pore_pressure=4700.0, effective_stress_ratio=0.8)
+            8940.0"""
+        if effective_stress_ratio <= 0:
+            raise ValueError(f"effective_stress_ratio must be positive, got {effective_stress_ratio}")
         shmin = effective_stress_ratio * (overburden_stress - biot_coefficient * pore_pressure) + biot_coefficient * pore_pressure + tectonic_stress
 
         return float(shmin)
@@ -140,7 +156,7 @@ class HorizontalStressesCalculation:
 
     @staticmethod
     def calculate_stress_regime_q_factor(sigv: float, shmax: float, shmin: float) -> float:
-        """Calculates q factor representing the stress regime based on the order and relative magnitude of the three principle stresses.
+        """Calculates q factor representing the stress regime based on the order and relative magnitude of the three principal stresses.
             Normal Stress Regime: sigv  > shmax > shmin --> 0 > q < 1
             Strike slip Regime: shmax > sigv  > shmin --> 1 > q < 2
             Reverse Faulting: shmax > shmin > sigv  --> 2 > q < 3
